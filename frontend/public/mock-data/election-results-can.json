@@ -1,0 +1,18 @@
+{
+  "country": "CAN",
+  "results": {
+    "Alberta": { "leading_party": "Conservative", "turnout": 64.5 },
+    "British Columbia": { "leading_party": "NDP", "turnout": 62.1 },
+    "Manitoba": { "leading_party": "Conservative", "turnout": 65.3 },
+    "New Brunswick": { "leading_party": "Liberal", "turnout": 67.2 },
+    "Newfoundland and Labrador": { "leading_party": "Liberal", "turnout": 57.1 },
+    "Nova Scotia": { "leading_party": "Liberal", "turnout": 65.4 },
+    "Ontario": { "leading_party": "Liberal", "turnout": 64.9 },
+    "Prince Edward Island": { "leading_party": "Liberal", "turnout": 77.7 },
+    "Quebec": { "leading_party": "Bloc Quebecois", "turnout": 66.6 },
+    "Saskatchewan": { "leading_party": "Conservative", "turnout": 71.1 },
+    "Yukon": { "leading_party": "Liberal", "turnout": 75.6 },
+    "Northwest Territories": { "leading_party": "NDP", "turnout": 55.0 },
+    "Nunavut": { "leading_party": "NDP", "turnout": 47.3 }
+  }
+} 

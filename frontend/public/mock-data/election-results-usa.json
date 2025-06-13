@@ -1,0 +1,12 @@
+{
+  "results": [
+    {
+      "regionId": "USA-CA",
+      "leadingParty": "left",
+      "turnout": 0.65,
+      "isFlipped": false,
+      "leader": "Candidate A",
+      "margin": "15.2%"
+    }
+  ]
+} 
