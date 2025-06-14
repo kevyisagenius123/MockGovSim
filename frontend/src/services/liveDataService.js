@@ -7,10 +7,7 @@ class LiveDataService {
     let socket = null;
     let reconnectInterval = 5000; // 5 seconds
 
-    // This is a bit of a hack to get the correct WebSocket URL
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsHost = window.location.host;
-    const wsUrl = `${wsProtocol}//${wsHost}/ws`;
+    const wsUrl = import.meta.env.VITE_WSS_URL || 'ws://localhost:8084/ws';
 
     this.connectWebSocket = (onMessage) => {
       // This is, like, a super important check to make sure we don't have multiple sockets

@@ -1,0 +1,2 @@
+#!/bin/bash
+echo "export const CACHE_BUSTER = '${HEROKU_SLUG_COMMIT}';" > frontend/src/cacheBuster.js 

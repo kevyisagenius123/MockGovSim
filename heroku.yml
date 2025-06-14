@@ -1,6 +1,5 @@
 build:
   docker:
-    web:
-      dockerfile: Dockerfile
-      args:
-        CACHE_BUSTER: ${HEROKU_SLUG_COMMIT} 
+    web: Dockerfile
+  run:
+    web: bin/pre_build 
