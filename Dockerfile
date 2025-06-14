@@ -14,6 +14,7 @@ COPY build.gradle settings.gradle gradlew ./
 COPY gradle ./gradle
 COPY src ./src
 RUN chmod +x ./gradlew
+# Trigger new build to clear cache
 RUN ./gradlew build --no-daemon
 
 # Stage 3: Create the final image
