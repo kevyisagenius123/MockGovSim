@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getBills } from '../../api/legislationApi';
+import { safeCall, safeCallAsync } from '../../utils/safeCall';
 import BillCard from './BillCard';
 
 const BillList = ({ onBillsLoaded }) => {
@@ -8,25 +9,23 @@ const BillList = ({ onBillsLoaded }) => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        getBills()
-            .then(response => {
-                const fetchedBills = Array.isArray(response.data) ? response.data : [];
+        const fetchBills = async () => {
+            try {
+                const response = await safeCallAsync(getBills);
+                const fetchedBills = Array.isArray(response?.data) ? response.data : [];
                 setBills(fetchedBills);
-                if (onBillsLoaded) {
-                    onBillsLoaded(fetchedBills);
-                }
-            })
-            .catch(error => {
+                safeCall(onBillsLoaded, fetchedBills);
+            } catch (error) {
                 console.error('Failed to fetch bills:', error);
                 setError('Could not load bills.');
-                if (onBillsLoaded) {
-                    onBillsLoaded([]);
-                }
-            })
-            .finally(() => {
+                safeCall(onBillsLoaded, []);
+            } finally {
                 setLoading(false);
-            });
-    }, []);
+            }
+        };
+
+        safeCall(fetchBills);
+    }, [onBillsLoaded]);
 
     if (loading) {
         return <p className="text-center text-zinc-400">Loading bills...</p>;

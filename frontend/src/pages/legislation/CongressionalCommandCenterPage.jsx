@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { getBillById, getWhipBreakdown } from '../../api/legislationApi';
+import { safeCall, safeCallAsync } from '../../utils/safeCall';
 import AttachedAmendmentsViewer from '../../components/legislation/AttachedAmendmentsViewer';
 import WhipBreakdownChart from '../../components/legislation/WhipBreakdownChart';
 import LiveBillTracker from '../../components/legislation/LiveBillTracker';
@@ -18,21 +19,38 @@ const CongressionalCommandCenterPage = () => {
         const fetchData = async () => {
             setIsLoading(true);
             try {
-                const billPromise = getBillById(billId);
-                const whipPromise = getWhipBreakdown(billId);
+                // Validate billId first
+                if (!billId || isNaN(billId) || billId <= 0) {
+                    setError("Invalid bill ID provided.");
+                    setIsLoading(false);
+                    return;
+                }
+
+                const billPromise = safeCallAsync(() => getBillById(billId));
+                const whipPromise = safeCallAsync(() => getWhipBreakdown(billId));
                 
                 const [billResponse, whipResponse] = await Promise.all([billPromise, whipPromise]);
                 
-                setBill(billResponse.data);
-                setWhipBreakdown(whipResponse.data);
+                if (billResponse && billResponse.data) {
+                    setBill(billResponse.data);
+                } else {
+                    setError("Bill not found or invalid response.");
+                }
+                
+                if (whipResponse && whipResponse.data) {
+                    setWhipBreakdown(whipResponse.data);
+                } else {
+                    setWhipBreakdown({});
+                }
             } catch (err) {
                 console.error("Failed to fetch command center data:", err);
-                setError("Could not load bill details.");
+                setError("Could not load bill details. The bill may not exist or the server may be unavailable.");
             } finally {
                 setIsLoading(false);
             }
         };
-        fetchData();
+        
+        safeCall(fetchData);
     }, [billId]);
 
     if (isLoading) {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { motion } from 'framer-motion';
 import apiClient from '../../api/apiClient';
+import { safeCall, safeCallAsync } from '../../utils/safeCall';
 import CandidateSpotlight from './CandidateSpotlight';
 
 // Mock data for candidate details - replace with API call
@@ -22,32 +23,43 @@ const PollingTrendsChart = ({ region = 'National', electionType = 'Presidential'
         const fetchTrendline = async () => {
             try {
                 setLoading(true);
-                const response = await apiClient.get('/polling/trends', {
-                    params: { region, electionType, daysBack }
-                });
+                const response = await safeCallAsync(() => 
+                    apiClient.get('/polling/trends', {
+                        params: { region, electionType, daysBack }
+                    })
+                );
                 
-                const transformedData = transformDataForChart(response.data);
-                setTrendData(transformedData.data);
-                if (transformedData.candidates.length > 0) {
-                    // Select the first candidate by default
-                    setSelectedCandidate(mockCandidateDetails[transformedData.candidates[0]]);
+                if (response && response.data) {
+                    const transformedData = transformDataForChart(response.data);
+                    setTrendData(transformedData.data || []);
+                    if (transformedData.candidates && transformedData.candidates.length > 0) {
+                        // Select the first candidate by default
+                        const firstCandidate = transformedData.candidates[0];
+                        setSelectedCandidate(mockCandidateDetails[firstCandidate] || null);
+                    }
+                    setError(null);
+                } else {
+                    // Fallback to mock data if API fails
+                    setTrendData([]);
+                    setError('Using fallback data - API unavailable');
                 }
-                setError(null);
             } catch (err) {
                 setError('Failed to fetch trendline data.');
                 console.error(err);
+                // Set empty data instead of leaving in loading state
+                setTrendData([]);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchTrendline();
+        safeCall(fetchTrendline);
     }, [region, electionType, daysBack]);
 
     const handleCandidateSelect = (candidateName) => {
         // In a real app, you might fetch this data from an API
         const newSelectedCandidate = mockCandidateDetails[candidateName];
-        setSelectedCandidate(newSelectedCandidate);
+        safeCall(() => setSelectedCandidate(newSelectedCandidate));
     };
 
     const candidateColors = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F'];
@@ -88,7 +100,7 @@ const PollingTrendsChart = ({ region = 'National', electionType = 'Presidential'
                         {candidates.map((name, index) => (
                             <button
                                 key={name}
-                                onClick={() => handleCandidateSelect(name)}
+                                onClick={() => safeCall(() => handleCandidateSelect(name))}
                                 className={`px-3 py-1 text-sm font-semibold rounded-full transition-all duration-200 ${
                                     selectedCandidate?.name === name
                                         ? 'bg-blue-500 text-white shadow-md'
@@ -133,12 +145,6 @@ const PollingTrendsChart = ({ region = 'National', electionType = 'Presidential'
                             stroke={candidateColors[index % candidateColors.length]} 
                             strokeWidth={selectedCandidate?.name === candidate ? 4 : 2}
                             dot={false}
-                            // Replace Recharts' Line with motion.custom for animation
-                            as={motion.path}
-                            variants={lineVariants}
-                            initial="hidden"
-                            animate="visible"
-                            custom={index}
                         />
                     ))}
                 </LineChart>
