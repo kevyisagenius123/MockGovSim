@@ -18,7 +18,7 @@ module.exports = {
         },
         'text-primary': '#f0f6fc',
         'text-secondary': '#8b949e',
-        'primary-dark': '#0d1117', // Or a different shade
+        'primary-dark': '#0d1117',
         accent: '#58a6ff',
         border: '#30363d',
         card: '#161b22',
