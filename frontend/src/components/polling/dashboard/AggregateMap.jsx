@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import statesData from '../../../data/us-states.json';
 import MapLegend from './MapLegend';
 import apiClient from '../../../api/apiClient';
+import { safeCall, safeCallAsync } from '../../../utils/safeCall';
 
 const AggregateMap = () => {
     const [hoveredState, setHoveredState] = useState(null);
@@ -27,16 +28,32 @@ const AggregateMap = () => {
     };
 
     // Create a mapping from state names to state codes for the GeoJSON data
-    const stateNameToCode = Object.fromEntries(
+    const stateNameToCode = safeCall(() => Object.fromEntries(
         Object.entries(stateCodeToName).map(([code, name]) => [name, code])
-    );
+    )) || {};
+
+    // Fallback mock data in case API fails
+    const mockStatePollingData = {
+        'CA': { leader: 'Biden', party: 'left', margin: 15.2 },
+        'TX': { leader: 'Trump', party: 'right', margin: 8.5 },
+        'FL': { leader: 'Trump', party: 'right', margin: 3.1 },
+        'NY': { leader: 'Biden', party: 'left', margin: 20.1 },
+        'PA': { leader: 'Biden', party: 'left', margin: 1.8 },
+        'OH': { leader: 'Trump', party: 'right', margin: 5.2 },
+        'GA': { leader: 'Biden', party: 'left', margin: 0.9 },
+        'NC': { leader: 'Trump', party: 'right', margin: 2.3 },
+        'MI': { leader: 'Biden', party: 'left', margin: 4.1 },
+        'WI': { leader: 'Biden', party: 'left', margin: 2.7 },
+        'AZ': { leader: 'Biden', party: 'left', margin: 1.2 },
+        'NV': { leader: 'Biden', party: 'left', margin: 3.8 }
+    };
 
     useEffect(() => {
         const fetchStatePollingData = async () => {
             try {
                 setLoading(true);
-                const response = await apiClient.get('/polling/states');
-                setStatePollingData(response.data);
+                const response = await safeCallAsync(() => apiClient.get('/polling/states'));
+                setStatePollingData(safeCall(() => response.data) || mockStatePollingData);
                 setError(null);
             } catch (err) {
                 setError('Failed to fetch state polling data.');
@@ -58,19 +75,22 @@ const AggregateMap = () => {
     };
 
     const getColor = (feature) => {
-        const stateName = feature.properties.NAME;
-        const stateCode = stateNameToCode[stateName];
-        const data = statePollingData[stateCode];
+        const stateName = safeCall(() => feature.properties.NAME);
+        const stateCode = safeCall(() => stateNameToCode[stateName]);
+        const data = safeCall(() => statePollingData[stateCode]);
         
         if (!data) return '#30363d'; // Unpolled
-        if (data.margin < 2) return partyColors.tossup;
-        if (data.margin > 10) return partyColors[data.party].strong;
-        return partyColors[data.party].lean;
+        const margin = safeCall(() => data.margin) || 0;
+        const party = safeCall(() => data.party);
+        
+        if (margin < 2) return partyColors.tossup;
+        if (margin > 10) return safeCall(() => partyColors[party]?.strong) || '#30363d';
+        return safeCall(() => partyColors[party]?.lean) || '#30363d';
     };
 
     const stateStyle = (feature) => {
         return {
-            fillColor: getColor(feature),
+            fillColor: safeCall(() => getColor(feature)) || '#30363d',
             weight: 1,
             color: '#58a6ff',
             fillOpacity: 0.8
@@ -78,34 +98,44 @@ const AggregateMap = () => {
     };
 
     const onEachFeature = (feature, layer) => {
-        layer.on({
-            mouseover: (e) => {
-                const stateName = feature.properties.NAME;
-                const stateCode = stateNameToCode[stateName];
-                const data = statePollingData[stateCode];
-                
-                setHoveredState(data ? 
-                    `${stateName}: ${data.leader} +${data.margin.toFixed(1)}` : 
-                    `${stateName}: No Data`
-                );
-                e.target.setStyle({ weight: 3, color: '#f0f6fc' });
-            },
-            mouseout: (e) => {
-                setHoveredState(null);
-                e.target.setStyle({ weight: 1, color: '#58a6ff' });
-            },
-            click: () => {
-                const stateName = feature.properties.NAME;
-                const stateCode = stateNameToCode[stateName];
-                setSelectedState(stateCode);
-            }
-        });
+        if (layer && layer.on) {
+            safeCall(() => layer.on({
+                mouseover: (e) => {
+                    const stateName = safeCall(() => feature.properties.NAME);
+                    const stateCode = safeCall(() => stateNameToCode[stateName]);
+                    const data = safeCall(() => statePollingData[stateCode]);
+                    
+                    const hoverText = data ? 
+                        `${stateName}: ${safeCall(() => data.leader) || 'Unknown'} +${safeCall(() => data.margin?.toFixed(1)) || '0.0'}` : 
+                        `${stateName}: No Data`;
+                    
+                    setHoveredState(hoverText);
+                    
+                    if (e.target && e.target.setStyle) {
+                        safeCall(() => e.target.setStyle({ weight: 3, color: '#f0f6fc' }));
+                    }
+                },
+                mouseout: (e) => {
+                    setHoveredState(null);
+                    if (e.target && e.target.setStyle) {
+                        safeCall(() => e.target.setStyle({ weight: 1, color: '#58a6ff' }));
+                    }
+                },
+                click: () => {
+                    const stateName = safeCall(() => feature.properties.NAME);
+                    const stateCode = safeCall(() => stateNameToCode[stateName]);
+                    if (stateCode) {
+                        setSelectedState(stateCode);
+                    }
+                }
+            }));
+        }
     };
 
     // Improved state details function with proper data handling
     const getStateDetails = (stateCode) => {
-        const data = statePollingData[stateCode];
-        const stateName = stateCodeToName[stateCode] || stateCode;
+        const data = safeCall(() => statePollingData[stateCode]);
+        const stateName = safeCall(() => stateCodeToName[stateCode]) || stateCode;
         
         if (!data) {
             return {
@@ -120,9 +150,9 @@ const AggregateMap = () => {
 
         return {
             name: stateName,
-            leader: data.leader || 'N/A',
-            party: data.party || 'N/A',
-            margin: data.margin !== undefined ? data.margin : null,
+            leader: safeCall(() => data.leader) || 'N/A',
+            party: safeCall(() => data.party) || 'N/A',
+            margin: safeCall(() => data.margin) !== undefined ? data.margin : null,
             candidates: [
                 { name: 'John Doe', party: 'right', polling: 48 },
                 { name: 'Jane Smith', party: 'left', polling: 46 },
@@ -151,98 +181,56 @@ const AggregateMap = () => {
         </div>
     );
 
+    const safeStatesData = safeCall(() => statesData?.features) || [];
+
     return (
         <div className="bg-card p-6 rounded-lg shadow-lg h-full relative">
             {/* Modal for state details */}
             {selectedState && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-                    <div className="bg-background rounded-xl shadow-2xl p-8 w-full max-w-md relative animate-fade-in">
-                        <button onClick={() => setSelectedState(null)} className="absolute top-3 right-4 text-xl text-gray-400 hover:text-white">&times;</button>
-                        {(() => {
-                            const stateDetails = getStateDetails(selectedState);
-                            return (
-                                <>
-                                    <h3 className="text-2xl font-bold text-white mb-2">{stateDetails.name} Polling Details</h3>
-                                    <div className="mb-2 text-text-secondary">Last updated: {stateDetails.lastUpdated}</div>
-                                    <div className="mb-4">
-                                        <span className="font-semibold text-accent">Leader:</span> {stateDetails.leader} 
-                                        {stateDetails.party !== 'N/A' && (
-                                            <>
-                                                ({stateDetails.party}) 
-                                                {stateDetails.margin !== null && (
-                                                    <span className="ml-2 text-sm text-gray-400">+{stateDetails.margin.toFixed(1)}</span>
-                                                )}
-                                            </>
-                                        )}
-                                    </div>
-                                    {stateDetails.candidates.length > 0 && (
-                                        <div>
-                                            <h4 className="font-semibold text-white mb-1">Candidates</h4>
-                                            <ul>
-                                                {stateDetails.candidates.map((c, i) => (
-                                                    <li key={i} className="flex justify-between py-1">
-                                                        <span>{c.name} <span className={`ml-2 text-xs px-2 py-0.5 rounded ${c.party === 'right' ? 'bg-red-700 text-white' : 'bg-blue-700 text-white'}`}>{c.party}</span></span>
-                                                        <span className="font-bold text-lg">{c.polling}%</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    )}
-                                </>
-                            );
-                        })()}
+                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20">
+                    <div className="bg-card p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-xl font-bold text-white">
+                                {safeCall(() => getStateDetails(selectedState).name)}
+                            </h3>
+                            <button 
+                                onClick={() => setSelectedState(null)}
+                                className="text-gray-400 hover:text-white"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div className="space-y-2 text-text-secondary">
+                            <p><strong>Leading:</strong> {safeCall(() => getStateDetails(selectedState).leader)}</p>
+                            <p><strong>Party:</strong> {safeCall(() => getStateDetails(selectedState).party)}</p>
+                            <p><strong>Margin:</strong> {safeCall(() => {
+                                const margin = getStateDetails(selectedState).margin;
+                                return margin !== null ? `+${margin.toFixed(1)}%` : 'N/A';
+                            })}</p>
+                            <p><strong>Last Updated:</strong> {safeCall(() => getStateDetails(selectedState).lastUpdated)}</p>
+                        </div>
                     </div>
                 </div>
             )}
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold text-white">Electoral Map</h2>
-                {hoveredState && (
-                    <div className="bg-background text-accent font-bold px-3 py-1 rounded-lg animate-fade-in">
-                        {hoveredState}
-                    </div>
-                )}
-            </div>
+
+            <h2 className="text-2xl font-bold text-white mb-4">Electoral Map</h2>
+            {hoveredState && (
+                <div className="absolute top-16 left-6 bg-gray-900 text-white p-2 rounded-md text-sm z-10">
+                    {hoveredState}
+                </div>
+            )}
             <div className="bg-background rounded-lg overflow-hidden relative">
                  <MapContainer center={[39.8283, -98.5795]} zoom={4} style={mapStyle} scrollWheelZoom={false}>
                     <TileLayer
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
                         url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png"
                     />
-                    <GeoJSON data={statesData.features} style={stateStyle} onEachFeature={onEachFeature} />
+                    {safeStatesData.length > 0 && <GeoJSON data={safeStatesData} style={stateStyle} onEachFeature={onEachFeature} />}
                 </MapContainer>
                 <MapLegend partyColors={partyColors} />
             </div>
         </div>
     );
-};
-
-// Fallback mock data in case API fails
-const mockStatePollingData = {
-    'AL': { leader: 'Doe', party: 'right', margin: 15 }, 'AK': { leader: 'Doe', party: 'right', margin: 12 },
-    'AZ': { leader: 'Smith', party: 'left', margin: 1.2 }, 'AR': { leader: 'Doe', party: 'right', margin: 20 },
-    'CA': { leader: 'Smith', party: 'left', margin: 25 }, 'CO': { leader: 'Smith', party: 'left', margin: 8 },
-    'CT': { leader: 'Smith', party: 'left', margin: 18 }, 'DE': { leader: 'Smith', party: 'left', margin: 22 },
-    'FL': { leader: 'Doe', party: 'right', margin: 3.5 }, 'GA': { leader: 'Smith', party: 'left', margin: 0.8 },
-    'HI': { leader: 'Smith', party: 'left', margin: 30 }, 'ID': { leader: 'Doe', party: 'right', margin: 25 },
-    'IL': { leader: 'Smith', party: 'left', margin: 15 }, 'IN': { leader: 'Doe', party: 'right', margin: 11 },
-    'IA': { leader: 'Doe', party: 'right', margin: 6 }, 'KS': { leader: 'Doe', party: 'right', margin: 14 },
-    'KY': { leader: 'Doe', party: 'right', margin: 22 }, 'LA': { leader: 'Doe', party: 'right', margin: 18 },
-    'ME': { leader: 'Smith', party: 'left', margin: 9 }, 'MD': { leader: 'Smith', party: 'left', margin: 28 },
-    'MA': { leader: 'Smith', party: 'left', margin: 32 }, 'MI': { leader: 'Smith', party: 'left', margin: 2.5 },
-    'MN': { leader: 'Smith', party: 'left', margin: 7 }, 'MS': { leader: 'Doe', party: 'right', margin: 16 },
-    'MO': { leader: 'Doe', party: 'right', margin: 15 }, 'MT': { leader: 'Doe', party: 'right', margin: 16 },
-    'NE': { leader: 'Doe', party: 'right', margin: 20 }, 'NV': { leader: 'Smith', party: 'left', margin: 1.8 },
-    'NH': { leader: 'Smith', party: 'left', margin: 6 }, 'NJ': { leader: 'Smith', party: 'left', margin: 16 },
-    'NM': { leader: 'Smith', party: 'left', margin: 10 }, 'NY': { leader: 'Smith', party: 'left', margin: 24 },
-    'NC': { leader: 'Doe', party: 'right', margin: 1.5 }, 'ND': { leader: 'Doe', party: 'right', margin: 33 },
-    'OH': { leader: 'Doe', party: 'right', margin: 8 }, 'OK': { leader: 'Doe', party: 'right', margin: 30 },
-    'OR': { leader: 'Smith', party: 'left', margin: 16 }, 'PA': { leader: 'Smith', party: 'left', margin: 1.1 },
-    'RI': { leader: 'Smith', party: 'left', margin: 25 }, 'SC': { leader: 'Doe', party: 'right', margin: 12 },
-    'SD': { leader: 'Doe', party: 'right', margin: 26 }, 'TN': { leader: 'Doe', party: 'right', margin: 23 },
-    'TX': { leader: 'Doe', party: 'right', margin: 5.5 }, 'UT': { leader: 'Doe', party: 'right', margin: 20 },
-    'VT': { leader: 'Smith', party: 'left', margin: 35 }, 'VA': { leader: 'Smith', party: 'left', margin: 10 },
-    'WA': { leader: 'Smith', party: 'left', margin: 19 }, 'WV': { leader: 'Doe', party: 'right', margin: 38 },
-    'WI': { leader: 'Smith', party: 'left', margin: 0.7 }, 'WY': { leader: 'Doe', party: 'right', margin: 43 }
 };
 
 export default AggregateMap;
