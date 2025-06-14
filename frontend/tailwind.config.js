@@ -8,15 +8,20 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: '#0d1117',
-        card: '#161b22',
-        border: '#30363d',
-        text: {
-          primary: '#f0f6fc',
-          secondary: '#8b949e',
+        background: {
+          DEFAULT: '#0d1117',
+          dark: '#010409',
         },
+        primary: {
+          DEFAULT: '#58a6ff',
+          dark: '#1f6feb'
+        },
+        'text-primary': '#f0f6fc',
+        'text-secondary': '#8b949e',
+        'primary-dark': '#0d1117', // Or a different shade
         accent: '#58a6ff',
-        link: '#1f6feb',
+        border: '#30363d',
+        card: '#161b22',
 
         // Party colors
         party: {

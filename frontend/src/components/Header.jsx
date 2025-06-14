@@ -3,11 +3,13 @@ import { NavLink, Link, useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
 import Dropdown, { DropdownItem } from './Dropdown';
 import { getLatestBill } from '../api/legislationApi';
+import { Menu, X } from 'lucide-react';
 
 const Header = () => {
     const navigate = useNavigate();
     const { isAuthenticated, user, logout } = useAuthStore();
     const [latestBillId, setLatestBillId] = useState(null);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     useEffect(() => {
         getLatestBill()
@@ -35,7 +37,12 @@ const Header = () => {
                     <Link to="/" className="text-2xl font-bold text-text-primary">
                         MockGovSim
                     </Link>
-                    <nav className="flex items-center space-x-6">
+                    <div className="md:hidden">
+                        <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-zinc-300 hover:text-white focus:outline-none">
+                            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                        </button>
+                    </div>
+                    <nav className="hidden md:flex items-center space-x-6">
                         <NavLink to="/map" className={({ isActive }) => `${navLinkClasses} ${isActive ? activeNavLinkClasses : ''}`}>Map</NavLink>
                         
                         <Dropdown title="Country Maps">
@@ -105,6 +112,19 @@ const Header = () => {
                     </nav>
                 </div>
             </div>
+            {isMenuOpen && (
+                <div className="md:hidden">
+                    <nav className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                        <NavLink to="/map" className={({ isActive }) => `block ${navLinkClasses} ${isActive ? activeNavLinkClasses : ''}`}>Map</NavLink>
+                        <NavLink to="/elections" className={({ isActive }) => `block ${navLinkClasses} ${isActive ? activeNavLinkClasses : ''}`}>Elections</NavLink>
+                        <NavLink to="/legislation" className={({ isActive }) => `block ${navLinkClasses} ${isActive ? activeNavLinkClasses : ''}`}>Legislation</NavLink>
+                        <NavLink to="/results" className={({ isActive }) => `block ${navLinkClasses} ${isActive ? activeNavLinkClasses : ''}`}>Results</NavLink>
+                        <NavLink to="/polling" className={({ isActive }) => `block ${navLinkClasses} ${isActive ? activeNavLinkClasses : ''}`}>Polling</NavLink>
+                        <NavLink to="/news" className={({ isActive }) => `block ${navLinkClasses} ${isActive ? activeNavLinkClasses : ''}`}>News</NavLink>
+                        <NavLink to="/about" className={({ isActive }) => `block ${navLinkClasses} ${isActive ? activeNavLinkClasses : ''}`}>About</NavLink>
+                    </nav>
+                </div>
+            )}
         </header>
     );
 };
