@@ -21,7 +21,7 @@ public class Speech {
     private User speaker;
 
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String text;
 
     @Column(nullable = false, updatable = false)

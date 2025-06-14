@@ -21,7 +21,7 @@ public class Amendment {
     private User sponsor;
 
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String text;
 
     @Enumerated(EnumType.STRING)
