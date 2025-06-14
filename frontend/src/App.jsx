@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from './components/Header';
+import ErrorBoundary from './components/ErrorBoundary';
 import useAuthStore from './store/authStore';
 
 function App() {
@@ -19,12 +20,16 @@ function App() {
     }
 
     return (
-        <div className="flex flex-col min-h-screen bg-background text-text-primary">
-            <Header />
-            <main className="flex-grow container mx-auto px-6 py-8">
-                <Outlet />
-            </main>
-        </div>
+        <ErrorBoundary>
+            <div className="flex flex-col min-h-screen bg-background text-text-primary">
+                <Header />
+                <main className="flex-grow container mx-auto px-6 py-8">
+                    <ErrorBoundary>
+                        <Outlet />
+                    </ErrorBoundary>
+                </main>
+            </div>
+        </ErrorBoundary>
     );
 }
 

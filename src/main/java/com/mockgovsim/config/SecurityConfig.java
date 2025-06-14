@@ -77,7 +77,8 @@ public class SecurityConfig {
                             "/api/votes/**",
                             "/api/comments/**",
                             "/api/countries/**",
-                            "/ws/**"
+                            "/ws/**",
+                            "/error"
                         ).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("GAME_ADMIN")
                         .anyRequest().authenticated()
