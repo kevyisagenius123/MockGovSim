@@ -8,7 +8,7 @@ spring:
         format_sql: true
 
 server:
-  port: 8084
+  port: 8086
 
 application:
   security:
@@ -16,7 +16,7 @@ application:
       secret-key: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
       expiration: 86400000  # 24 hours in milliseconds
     cors:
-      allowed-origins: "http://localhost:5173,http://localhost:8084"
+      allowed-origins: "http://localhost:5173,http://localhost:8086"
 
 ---
 
@@ -49,9 +49,7 @@ spring:
     activate:
       on-profile: prod
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
-    username: ${POSTGRES_USER}
-    password: ${POSTGRES_PASSWORD}
+    url: ${JDBC_DATABASE_URL}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
