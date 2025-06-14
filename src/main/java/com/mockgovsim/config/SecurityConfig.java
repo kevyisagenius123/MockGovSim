@@ -62,6 +62,7 @@ public class SecurityConfig {
                             "/*.jpeg",
                             "/api/auth/**",
                             "/api/bills/**",
+                            "/api/candidates/**",
                             "/api/amendments/**",
                             "/api/pledges/**",
                             "/api/elections/**",
