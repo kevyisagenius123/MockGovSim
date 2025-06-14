@@ -1,4 +1,4 @@
-// Cache bust v2.1.2 - 2025-06-14T07:00:00Z - Enhanced error prevention
+// Cache bust v2.1.2 - 2025-06-14T07:05:00Z - Enhanced error prevention with aggressive cache busting
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider } from 'react-router-dom'
