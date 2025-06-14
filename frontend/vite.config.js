@@ -11,23 +11,20 @@ export default defineConfig({
     },
   },
   build: {
-    // Force new bundle names with timestamp
+    // Standard build configuration
     rollupOptions: {
       output: {
-        entryFileNames: `assets/[name]-[hash]-${Date.now()}.js`,
-        chunkFileNames: `assets/[name]-[hash]-${Date.now()}.js`,
-        assetFileNames: `assets/[name]-[hash]-${Date.now()}.[ext]`
+        entryFileNames: `assets/[name]-[hash].js`,
+        chunkFileNames: `assets/[name]-[hash].js`,
+        assetFileNames: `assets/[name]-[hash].[ext]`
       }
     },
     // Clear output directory
     emptyOutDir: true
   },
   server: {
-    // Disable caching in dev mode
-    headers: {
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0'
-    }
+    // Standard dev server configuration
+    port: 3000,
+    open: true
   }
 }) 

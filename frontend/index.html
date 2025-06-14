@@ -4,98 +4,23 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- NUCLEAR CACHE BUSTING v2.1.2 - Force fresh load -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
-    <meta name="version" content="2.1.2-20250614-071500-NUCLEAR" />
+    <meta name="version" content="3.0.0" />
     <title>MockGovSim 2.0</title>
-    <script>
-      // IMMEDIATE CACHE DESTRUCTION
-      console.log('🚀 NUCLEAR CACHE CLEARING INITIATED');
-      
-      // Clear all possible caches immediately
-      if ('caches' in window) {
-        caches.keys().then(function(names) {
-          names.forEach(function(name) {
-            console.log('💥 Deleting cache:', name);
-            caches.delete(name);
-          });
-        });
-      }
-      
-      // Clear localStorage and sessionStorage
-      try {
-        localStorage.clear();
-        sessionStorage.clear();
-        console.log('💥 Storage cleared');
-      } catch(e) {}
-      
-      // Force reload if we detect old bundle
-      const checkForOldBundle = () => {
-        const scripts = document.querySelectorAll('script[src*="index-Bjr07iE6"]');
-        if (scripts.length > 0) {
-          console.log('🔄 OLD BUNDLE DETECTED - FORCING RELOAD');
-          window.location.reload(true);
-        }
-      };
-      
-      // Check immediately and after DOM loads
-      checkForOldBundle();
-      document.addEventListener('DOMContentLoaded', checkForOldBundle);
-      
-      // Set timestamp to force fresh requests
-      window.CACHE_BUST = Date.now();
-      console.log('🕐 Cache bust timestamp:', window.CACHE_BUST);
-    </script>
   </head>
   <body>
     <div id="root"></div>
     <script>
-      // NUCLEAR SERVICE WORKER REGISTRATION
+      // Standard service worker registration
       if ('serviceWorker' in navigator) {
-        // Unregister ALL existing service workers first
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-          for(let registration of registrations) {
-            console.log('💥 Unregistering old service worker');
-            registration.unregister();
-          }
-          
-          // Register new service worker
-          navigator.serviceWorker.register('/sw.js?v=' + Date.now())
-            .then((registration) => {
-              console.log('✅ NEW Service Worker registered:', registration);
-              
-              // Force immediate activation
-              if (registration.waiting) {
-                registration.waiting.postMessage({type: 'SKIP_WAITING'});
-              }
-              
-              // Listen for messages
-              navigator.serviceWorker.addEventListener('message', (event) => {
-                if (event.data.type === 'FORCE_RELOAD') {
-                  console.log('🔄 Service Worker requesting NUCLEAR reload');
-                  window.location.href = window.location.href + '?nuclear=' + Date.now();
-                }
-              });
-            })
-            .catch((error) => {
-              console.log('❌ Service Worker registration failed:', error);
-            });
-        });
+        navigator.serviceWorker.register('/sw.js')
+          .then((registration) => {
+            console.log('Service Worker registered:', registration);
+          })
+          .catch((error) => {
+            console.log('Service Worker registration failed:', error);
+          });
       }
-      
-      // Add timestamp to all script loads
-      const originalCreateElement = document.createElement;
-      document.createElement = function(tagName) {
-        const element = originalCreateElement.call(this, tagName);
-        if (tagName.toLowerCase() === 'script' && element.src) {
-          const separator = element.src.includes('?') ? '&' : '?';
-          element.src += separator + 'nuclear=' + Date.now();
-        }
-        return element;
-      };
     </script>
-    <script type="module" src="/src/main.jsx?nuclear=2.1.2-20250614-071500"></script>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html> 
