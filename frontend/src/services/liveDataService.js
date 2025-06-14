@@ -7,7 +7,7 @@ class LiveDataService {
     let socket = null;
     let reconnectInterval = 5000; // 5 seconds
 
-    const wsUrl = import.meta.env.VITE_WSS_URL || 'ws://localhost:8084/ws';
+    const wsUrl = import.meta.env.VITE_WSS_URL || 'ws://localhost:8086/ws';
 
     this.connectWebSocket = (onMessage) => {
       // This is, like, a super important check to make sure we don't have multiple sockets
