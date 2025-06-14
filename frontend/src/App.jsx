@@ -4,6 +4,7 @@ import Header from './components/Header';
 import ErrorBoundary from './components/ErrorBoundary';
 import useAuthStore from './store/authStore';
 
+// Force fresh deployment - v2.1 with enhanced error handling
 function App() {
     const { initializeAuth, isLoading } = useAuthStore();
 
