@@ -1,100 +1,143 @@
-// NUCLEAR SERVICE WORKER for cache destruction - v2.1.2
-const CACHE_NAME = 'mockgovsim-NUCLEAR-v2.1.2-' + Date.now();
+// MockGovSim Service Worker - v3.0.0
+const CACHE_NAME = 'mockgovsim-v3.0.0';
+const STATIC_CACHE = 'mockgovsim-static-v3.0.0';
+const DYNAMIC_CACHE = 'mockgovsim-dynamic-v3.0.0';
 
-console.log('💥 NUCLEAR SERVICE WORKER LOADING');
+// Assets to cache on install
+const STATIC_ASSETS = [
+  '/',
+  '/index.html',
+  '/manifest.json'
+];
 
-// IMMEDIATE cache destruction on install
+console.log('MockGovSim Service Worker initializing...');
+
+// Install event - cache static assets
 self.addEventListener('install', (event) => {
-  console.log('💥 NUCLEAR Service Worker installing - DESTROYING ALL CACHES');
+  console.log('Service Worker installing...');
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      console.log('💥 Found caches to destroy:', cacheNames);
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          console.log('💥 NUKING cache:', cacheName);
-          return caches.delete(cacheName);
-        })
-      );
-    }).then(() => {
-      console.log('💥 ALL CACHES DESTROYED - SKIPPING WAITING');
-      return self.skipWaiting();
-    })
+    caches.open(STATIC_CACHE)
+      .then((cache) => {
+        console.log('Caching static assets');
+        return cache.addAll(STATIC_ASSETS);
+      })
+      .then(() => {
+        console.log('Service Worker installation complete');
+        return self.skipWaiting();
+      })
+      .catch((error) => {
+        console.error('Service Worker installation failed:', error);
+      })
   );
 });
 
-// Take control immediately and force reload
+// Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('💥 NUCLEAR Service Worker activating - TAKING CONTROL');
+  console.log('Service Worker activating...');
   event.waitUntil(
-    self.clients.claim().then(() => {
-      console.log('💥 NUCLEAR Service Worker controlling all clients');
-      
-      // Force reload ALL clients immediately
-      return self.clients.matchAll().then((clients) => {
-        clients.forEach((client) => {
-          console.log('💥 FORCING NUCLEAR RELOAD of client:', client.url);
-          client.postMessage({ 
-            type: 'FORCE_RELOAD',
-            timestamp: Date.now(),
-            message: 'NUCLEAR CACHE CLEARING COMPLETE'
-          });
-        });
-      });
-    })
+    caches.keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            // Delete old cache versions
+            if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
+              console.log('Deleting old cache:', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+      .then(() => {
+        console.log('Service Worker activation complete');
+        return self.clients.claim();
+      })
+      .catch((error) => {
+        console.error('Service Worker activation failed:', error);
+      })
   );
 });
 
-// Handle skip waiting message
+// Fetch event - network first with cache fallback
+self.addEventListener('fetch', (event) => {
+  // Skip non-GET requests
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
+  const url = new URL(event.request.url);
+  
+  // Handle API requests - always go to network
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => {
+          // Return a generic error response for failed API calls
+          return new Response(
+            JSON.stringify({ error: 'Network unavailable' }),
+            { 
+              status: 503,
+              statusText: 'Service Unavailable',
+              headers: { 'Content-Type': 'application/json' }
+            }
+          );
+        })
+    );
+    return;
+  }
+
+  // For app shell and static assets - cache first
+  if (STATIC_ASSETS.includes(url.pathname) || url.pathname === '/') {
+    event.respondWith(
+      caches.match(event.request)
+        .then((response) => {
+          return response || fetch(event.request);
+        })
+    );
+    return;
+  }
+
+  // For other requests - network first with cache fallback
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        // Cache successful responses
+        if (response.status === 200) {
+          const responseClone = response.clone();
+          caches.open(DYNAMIC_CACHE)
+            .then((cache) => {
+              cache.put(event.request, responseClone);
+            });
+        }
+        return response;
+      })
+      .catch(() => {
+        // Fallback to cache
+        return caches.match(event.request)
+          .then((response) => {
+            return response || new Response(
+              'Content unavailable offline',
+              { 
+                status: 503,
+                statusText: 'Service Unavailable',
+                headers: { 'Content-Type': 'text/plain' }
+              }
+            );
+          });
+      })
+  );
+});
+
+// Handle messages from the main thread
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
-    console.log('💥 SKIP_WAITING received - activating immediately');
+    console.log('Skip waiting received');
     self.skipWaiting();
   }
-});
-
-// NUCLEAR fetch interception - bypass ALL caches
-self.addEventListener('fetch', (event) => {
-  const url = event.request.url;
   
-  // For ANY JavaScript or CSS files, ALWAYS fetch fresh with nuclear headers
-  if (url.includes('.js') || url.includes('.css') || url.includes('main.jsx')) {
-    console.log('💥 NUCLEAR BYPASS for:', url);
-    
-    event.respondWith(
-      fetch(event.request, {
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        }
-      }).then(response => {
-        // Clone and add nuclear headers to response
-        const newHeaders = new Headers(response.headers);
-        newHeaders.set('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
-        newHeaders.set('Pragma', 'no-cache');
-        newHeaders.set('Expires', '0');
-        
-        return new Response(response.body, {
-          status: response.status,
-          statusText: response.statusText,
-          headers: newHeaders
-        });
-      }).catch(error => {
-        console.error('💥 NUCLEAR fetch failed:', error);
-        // Don't fallback to cache - force error
-        throw error;
-      })
-    );
-  } else {
-    // For other requests, still bypass cache but allow fallback
-    event.respondWith(
-      fetch(event.request, { cache: 'no-store' }).catch(() => {
-        // Only fallback for non-JS/CSS files
-        return caches.match(event.request);
-      })
-    );
+  if (event.data && event.data.type === 'CACHE_UPDATE') {
+    console.log('Cache update requested');
+    // Could implement cache update logic here if needed
   }
 });
 
-console.log('💥 NUCLEAR SERVICE WORKER READY FOR DESTRUCTION'); 
+console.log('MockGovSim Service Worker ready'); 

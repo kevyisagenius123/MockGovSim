@@ -37,7 +37,7 @@ const MinimalApp = () => (
         🔧 <strong>Mode:</strong> All error prevention systems active
       </p>
       <p>
-        ✅ <strong>Cache:</strong> Nuclear cache busting deployed
+        ✅ <strong>Cache:</strong> Standard caching enabled
       </p>
     </div>
     <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', justifyContent: 'center' }}>
