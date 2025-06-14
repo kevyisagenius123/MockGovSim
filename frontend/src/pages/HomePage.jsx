@@ -5,17 +5,75 @@ import { safeCall, safeCallAsync } from '../utils/safeCall';
 import USNationalMap from '../components/map/USNationalMap';
 import ElectoralCollegeChart from '../components/charts/ElectoralCollegeChart';
 import BreakingNewsTicker from '../components/news/BreakingNewsTicker';
-import LatestPolls from '../components/polling/LatestPolls';
-import LiveAlerts from '../components/home/LiveAlerts';
-import SimulationControls from '../components/controls/SimulationControls';
-import Header from '../components/layout/Header';
-import Footer from '../components/layout/Footer';
-import PollingTrendsChart from '../components/polling/PollingTrendsChart';
-import CompetitiveRaces from '../components/races/CompetitiveRaces';
 import NationwideAverageBar from '../components/charts/NationwideAverageBar';
-import AIInsights from '../components/home/AIInsights';
+import Header from '../components/Header';
 import { motion } from 'framer-motion';
 import toast, { Toaster } from 'react-hot-toast';
+
+// Simple fallback components for missing ones
+const Footer = () => (
+  <footer className="bg-gray-800 text-white p-4 text-center">
+    <p>&copy; 2024 MockGovSim. All rights reserved.</p>
+  </footer>
+);
+
+const LatestPolls = () => (
+  <div className="bg-gray-800 p-4 rounded-lg">
+    <h3 className="text-xl font-bold mb-2">Latest Polls</h3>
+    <p className="text-gray-400">Polling data will be loaded here...</p>
+  </div>
+);
+
+const LiveAlerts = ({ alerts }) => (
+  <div className="bg-gray-800 p-4 rounded-lg">
+    <h3 className="text-xl font-bold mb-2">Live Alerts</h3>
+    {alerts && alerts.length > 0 ? (
+      <ul className="space-y-2">
+        {alerts.slice(0, 3).map((alert, index) => (
+          <li key={index} className="text-sm text-gray-300">{alert.title || alert.headline}</li>
+        ))}
+      </ul>
+    ) : (
+      <p className="text-gray-400">No alerts at this time</p>
+    )}
+  </div>
+);
+
+const SimulationControls = () => (
+  <div className="bg-gray-800 p-4 rounded-lg">
+    <h3 className="text-xl font-bold mb-2">Simulation Controls</h3>
+    <p className="text-gray-400">Controls will be implemented here...</p>
+  </div>
+);
+
+const PollingTrendsChart = () => (
+  <div className="bg-gray-800 p-4 rounded-lg">
+    <h3 className="text-xl font-bold mb-2">Polling Trends</h3>
+    <p className="text-gray-400">Trends chart will be displayed here...</p>
+  </div>
+);
+
+const CompetitiveRaces = ({ races }) => (
+  <div className="bg-gray-800 p-4 rounded-lg">
+    <h3 className="text-xl font-bold mb-2">Competitive Races</h3>
+    {races && races.length > 0 ? (
+      <ul className="space-y-2">
+        {races.slice(0, 5).map((race, index) => (
+          <li key={index} className="text-sm text-gray-300">{race.name || race.title}</li>
+        ))}
+      </ul>
+    ) : (
+      <p className="text-gray-400">No competitive races data available</p>
+    )}
+  </div>
+);
+
+const AIInsights = () => (
+  <div className="bg-gray-800 p-4 rounded-lg">
+    <h3 className="text-xl font-bold mb-2">AI Insights</h3>
+    <p className="text-gray-400">AI analysis will be displayed here...</p>
+  </div>
+);
 
 const HomePage = () => {
     const [livePollingData, setLivePollingData] = useState({ national: {}, states: [], trends: [] });
