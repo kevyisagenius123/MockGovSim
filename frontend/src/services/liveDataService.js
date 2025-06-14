@@ -7,7 +7,7 @@ class LiveDataService {
     let socket = null;
     let reconnectInterval = 5000; // 5 seconds
 
-    const wsUrl = import.meta.env.VITE_WSS_URL || 'ws://localhost:8086/ws';
+    const wsUrl = import.meta.env.VITE_WSS_URL;
 
     this.connectWebSocket = (onMessage) => {
       // This is, like, a super important check to make sure we don't have multiple sockets
@@ -16,6 +16,11 @@ class LiveDataService {
         return;
       }
 
+      if (!wsUrl) {
+        console.log("WebSocket URL not provided. Skipping connection.");
+        return;
+      }
+      
       // Use the dynamically generated URL
       socket = new WebSocket(wsUrl);
 
