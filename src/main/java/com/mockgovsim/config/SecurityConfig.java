@@ -91,17 +91,19 @@ public class SecurityConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addResourceHandlers(ResourceHandlerRegistry registry) {
-                registry.addResourceHandler("/**")
-                        .addResourceLocations("classpath:/static/")
-                        .resourceChain(true)
-                        .addResolver(new PathResourceResolver() {
-                            @Override
-                            protected Resource getResource(String resourcePath, Resource location) throws IOException {
-                                Resource requestedResource = location.createRelative(resourcePath);
-                                return requestedResource.exists() && requestedResource.isReadable() ? requestedResource
-                                        : new ClassPathResource("/static/index.html");
-                            }
-                        });
+                registry.addResourceHandler(
+                    "/**"
+                )
+                .addResourceLocations("classpath:/static/")
+                .resourceChain(true)
+                .addResolver(new PathResourceResolver() {
+                    @Override
+                    protected Resource getResource(String resourcePath, Resource location) throws IOException {
+                        Resource requestedResource = location.createRelative(resourcePath);
+                        return requestedResource.exists() && requestedResource.isReadable() ? requestedResource
+                                : new ClassPathResource("/static/index.html");
+                    }
+                });
             }
         };
     }
@@ -109,7 +111,7 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList(allowedOrigins));
+        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins));
         configuration.setAllowedMethods(Arrays.asList("GET","POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Collections.singletonList("*"));
         configuration.setAllowCredentials(true);
