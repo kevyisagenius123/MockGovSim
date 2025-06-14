@@ -44,7 +44,9 @@ dependencies {
     // Geo/Spatial & Simulation
     implementation 'org.locationtech.jts:jts-core:1.19.0'
     implementation 'org.apache.commons:commons-math3:3.6.1'
-    implementation 'com.github.javafaker:javafaker:1.0.2'
+    implementation('com.github.javafaker:javafaker:1.0.2') {
+        exclude group: 'org.yaml', module: 'snakeyaml'
+    }
 
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
