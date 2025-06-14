@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import resultsApi from '../../api/resultsApi';
+import { safeCall, safeCallAsync } from '../../utils/safeCall';
 
 const CountyMap = ({ stateCode }) => {
     const [countyResults, setCountyResults] = useState([]);
@@ -19,25 +20,28 @@ const CountyMap = ({ stateCode }) => {
             try {
                 // Fetch both county results and GeoJSON data
                 const [resultsRes, geoJsonRes] = await Promise.all([
-                    resultsApi.getCountyResults(stateCode),
-                    fetch('/maps/USA/gz_2010_us_050_00_5m.json').then(res => res.json())
+                    safeCallAsync(() => resultsApi.getCountyResults(stateCode)),
+                    safeCallAsync(() => fetch('/maps/USA/gz_2010_us_050_00_5m.json').then(res => res.json()))
                 ]);
 
-                const stateFips = stateFipsMap[stateCode];
+                const stateFips = safeCall(() => stateFipsMap[stateCode]);
                 if (!stateFips) {
                     throw new Error(`FIPS code for state ${stateCode} not found.`);
                 }
 
                 // Filter GeoJSON for the selected state
-                const stateGeoJson = {
+                const stateGeoJson = safeCall(() => ({
                     ...geoJsonRes,
                     features: geoJsonRes.features.filter(feature => feature.properties.STATE === stateFips)
-                };
+                })) || { features: [] };
 
-                setCountyResults(resultsRes.data);
+                setCountyResults(safeCall(() => resultsRes.data) || []);
                 setGeoJsonData(stateGeoJson);
             } catch (error) {
                 console.error("Failed to load county map data:", error);
+                // Set fallback data
+                setCountyResults([]);
+                setGeoJsonData({ features: [] });
             } finally {
                 setLoading(false);
             }
@@ -48,17 +52,19 @@ const CountyMap = ({ stateCode }) => {
 
     const getCountyStyle = (feature) => {
         // Find the result for the current county
-        const countyName = feature.properties.NAME;
-        const result = countyResults.find(r => r.countyName === countyName);
+        const countyName = safeCall(() => feature.properties.NAME);
+        const result = safeCall(() => countyResults.find(r => r.countyName === countyName));
 
         let fillColor = '#374151'; // Default (gray)
         if (result) {
-            const margin = result.margin;
-            if (result.leadingParty === 'left') {
+            const margin = safeCall(() => result.margin) || 0;
+            const leadingParty = safeCall(() => result.leadingParty);
+            
+            if (leadingParty === 'left') {
                 if (margin > 20) fillColor = '#1D4ED8'; // Strong D
                 else if (margin > 5) fillColor = '#3B82F6'; // Lean D
                 else fillColor = '#93C5FD'; // Weak D
-            } else if (result.leadingParty === 'right') {
+            } else if (leadingParty === 'right') {
                 if (margin > 20) fillColor = '#B91C1C'; // Strong R
                 else if (margin > 5) fillColor = '#EF4444'; // Lean R
                 else fillColor = '#FCA5A5'; // Weak R
@@ -75,7 +81,9 @@ const CountyMap = ({ stateCode }) => {
     };
 
     if (loading) return <div>Loading county map...</div>;
-    if (!geoJsonData) return <div>No map data available for this state.</div>;
+    if (!geoJsonData || !geoJsonData.features || geoJsonData.features.length === 0) {
+        return <div>No map data available for this state.</div>;
+    }
 
     // We don't have a good way to calculate the center of a filtered GeoJSON,
     // so this will need a more robust solution for a real application.

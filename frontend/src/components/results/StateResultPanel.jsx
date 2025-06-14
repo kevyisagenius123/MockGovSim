@@ -4,6 +4,7 @@ import VoteBreakdownTable from './VoteBreakdownTable';
 import LiveUpdatesTracker from './LiveUpdatesTracker';
 import VoteTrendLineChart from './VoteTrendLineChart';
 import CountyMap from './CountyMap';
+import { safeCall, safeCallAsync } from '../../utils/safeCall';
 
 const StateResultPanel = ({ stateCode }) => {
     const [results, setResults] = useState(null);
@@ -14,12 +15,14 @@ const StateResultPanel = ({ stateCode }) => {
         const fetchResults = async () => {
             try {
                 setLoading(true);
-                const response = await resultsApi.getDetailedStateResults(stateCode);
-                setResults(response.data);
+                const response = await safeCallAsync(() => resultsApi.getDetailedStateResults(stateCode));
+                setResults(safeCall(() => response.data) || null);
                 setError(null);
             } catch (err) {
                 setError(`Failed to load results for ${stateCode}.`);
                 console.error(err);
+                // Set fallback data
+                setResults(null);
             } finally {
                 setLoading(false);
             }
@@ -34,29 +37,37 @@ const StateResultPanel = ({ stateCode }) => {
     if (error) return <div className="p-4 text-red-500 text-center">{error}</div>;
     if (!results) return null;
 
+    const stateName = safeCall(() => results.stateName) || stateCode;
+    const precinctsReporting = safeCall(() => results.precinctsReporting) || 0;
+    const totalPrecincts = safeCall(() => results.totalPrecincts) || 0;
+    const lastUpdated = safeCall(() => results.lastUpdated) || new Date().toISOString();
+    const presidentialResults = safeCall(() => Array.isArray(results.presidentialResults) ? results.presidentialResults : []) || [];
+    const gubernatorialResults = safeCall(() => Array.isArray(results.gubernatorialResults) ? results.gubernatorialResults : []) || [];
+    const voteTrend = safeCall(() => Array.isArray(results.voteTrend) ? results.voteTrend : []) || [];
+
     return (
         <div className="bg-background-light p-6 rounded-lg shadow-2xl border border-gray-700">
-            <h2 className="text-4xl font-extrabold text-accent mb-2">{results.stateName}</h2>
+            <h2 className="text-4xl font-extrabold text-accent mb-2">{stateName}</h2>
             <p className="text-text-secondary mb-6">Live Election Results</p>
             
             <LiveUpdatesTracker 
-                precinctsReporting={results.precinctsReporting}
-                totalPrecincts={results.totalPrecincts}
-                lastUpdated={results.lastUpdated}
+                precinctsReporting={precinctsReporting}
+                totalPrecincts={totalPrecincts}
+                lastUpdated={lastUpdated}
             />
             
             <div className="space-y-8">
-                {results.presidentialResults && (
-                    <VoteBreakdownTable title="Presidential Results" results={Array.isArray(results.presidentialResults) ? results.presidentialResults : []} />
+                {presidentialResults.length > 0 && (
+                    <VoteBreakdownTable title="Presidential Results" results={presidentialResults} />
                 )}
 
                 {/* Placeholder for Gubernatorial results if they exist */}
-                {results.gubernatorialResults && (
-                     <VoteBreakdownTable title="Gubernatorial Results" results={Array.isArray(results.gubernatorialResults) ? results.gubernatorialResults : []} />
+                {gubernatorialResults.length > 0 && (
+                     <VoteBreakdownTable title="Gubernatorial Results" results={gubernatorialResults} />
                 )}
 
-                {results.voteTrend && (
-                    <VoteTrendLineChart data={Array.isArray(results.voteTrend) ? results.voteTrend : []} />
+                {voteTrend.length > 0 && (
+                    <VoteTrendLineChart data={voteTrend} />
                 )}
 
                 <div className="mt-8">

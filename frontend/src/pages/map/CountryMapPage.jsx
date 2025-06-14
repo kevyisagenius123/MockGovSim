@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import MapView from '../../components/MapView';
 import VoteModal from '../../components/map/VoteModal';
 import resultsApi from '../../api/resultsApi';
+import { safeCall, safeCallAsync } from '../../utils/safeCall';
 
 const countryLayers = {
   USA: {
@@ -24,62 +25,46 @@ const countryLayers = {
 
 const CountryMapPage = () => {
   const location = useLocation();
-  const countryCode = location.pathname.split('/').pop() || 'USA';
-  const availableLayers = countryLayers[countryCode.toUpperCase()] || {};
-  const defaultLayerKey = Object.keys(availableLayers)[0] || '';
-  
-  const [currentLayerKey, setCurrentLayerKey] = useState('');
+  const [geoJsonData, setGeoJsonData] = useState(null);
+  const [resultsData, setResultsData] = useState([]);
+  const [currentLayerKey, setCurrentLayerKey] = useState('states');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState(null);
   const [office, setOffice] = useState('President');
-  const [electionType, setElectionType] = useState('GENERAL');
-  const [resultsData, setResultsData] = useState([]);
-  const [geoJsonData, setGeoJsonData] = useState(null);
+  const [electionType, setElectionType] = useState('General');
 
-  const currentLayer = availableLayers[currentLayerKey] || {};
-  const geojsonURL = currentLayer.path;
-  const propertyKey = currentLayer.propertyKey;
+  // Extract country code from URL path
+  const pathSegments = safeCall(() => location.pathname.split('/')) || [];
+  const countryCode = safeCall(() => pathSegments[pathSegments.length - 1]) || 'USA';
 
-  // Effect to reset the layer when the country changes
+  const layers = safeCall(() => countryLayers[countryCode.toUpperCase()]) || {};
+  const layerKeys = safeCall(() => Object.keys(layers)) || [];
+  const currentLayer = safeCall(() => layers[currentLayerKey]) || null;
+  const propertyKey = safeCall(() => currentLayer?.propertyKey) || 'NAME';
+
   useEffect(() => {
-    const defaultKey = Object.keys(availableLayers)[0] || '';
-    setCurrentLayerKey(defaultKey);
-  }, [countryCode]);
+    const fetchGeoJsonData = async () => {
+      if (!currentLayer) return;
 
-  // Effect to fetch GeoJSON when the layer (and thus URL) changes
-  useEffect(() => {
-    if (!geojsonURL) {
-      setGeoJsonData(null);
-      return;
-    }
-    
-    let isActive = true;
-    const fetchMapData = async () => {
-      setGeoJsonData(null); // Clear previous map
       try {
-        const geoJsonRes = await fetch(geojsonURL);
-        const geoJson = await geoJsonRes.json();
-        if (isActive) {
-          setGeoJsonData(geoJson);
-        }
+        const response = await safeCallAsync(() => fetch(currentLayer.path));
+        const data = await safeCallAsync(() => response.json());
+        setGeoJsonData(data || null);
       } catch (error) {
-        console.error("Failed to fetch map data:", error);
-        if (isActive) setGeoJsonData(null);
+        console.error("Failed to fetch GeoJSON data:", error);
+        setGeoJsonData(null);
       }
     };
 
-    fetchMapData();
+    fetchGeoJsonData();
+  }, [currentLayer]);
 
-    return () => { isActive = false; };
-  }, [geojsonURL]);
-
-  // Effect to fetch election results when the country changes
   useEffect(() => {
     const fetchResults = async () => {
       try {
         if (countryCode.toUpperCase() === 'USA') {
-          const response = await resultsApi.getNationalResults();
-          setResultsData(response.data.presidentialResults || []);
+          const response = await safeCallAsync(() => resultsApi.getNationalResults());
+          setResultsData(safeCall(() => response.data.presidentialResults) || []);
         } else if (countryCode.toUpperCase() === 'UK') {
           // TODO: Fetch UK results
           setResultsData([]);
@@ -104,10 +89,13 @@ const CountryMapPage = () => {
     UK: { center: [55.3781, -3.4360], zoom: 5 },
     NY: { center: [42.9538, -75.5268], zoom: 7 },
   };
-  const config = countryConfig[countryCode.toUpperCase()] || { center: [0, 0], zoom: 2 };
+  const config = safeCall(() => countryConfig[countryCode.toUpperCase()]) || { center: [0, 0], zoom: 2 };
 
   const handleLayerChange = (e) => {
-    setCurrentLayerKey(e.target.value);
+    const newLayer = safeCall(() => e.target.value);
+    if (newLayer) {
+      setCurrentLayerKey(newLayer);
+    }
   };
 
   const handleRegionClick = (regionName) => {
@@ -120,44 +108,84 @@ const CountryMapPage = () => {
     setSelectedRegion(null);
   };
 
+  const handleOfficeChange = (e) => {
+    const newOffice = safeCall(() => e.target.value);
+    if (newOffice) {
+      setOffice(newOffice);
+    }
+  };
+
+  const handleElectionTypeChange = (e) => {
+    const newElectionType = safeCall(() => e.target.value);
+    if (newElectionType) {
+      setElectionType(newElectionType);
+    }
+  };
+
   return (
-    <div className="p-4 bg-background text-text-primary">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-3xl font-bold">Country Map: {countryCode.toUpperCase()}</h1>
-        <div className="flex items-center space-x-4">
-          <select
-            onChange={(e) => setOffice(e.target.value)}
-            value={office}
-            className="bg-gray-800 border border-gray-700 text-white font-bold py-2 px-4 rounded-lg"
-          >
-            <option value="President">President</option>
-            <option value="Senator">Senator</option>
-            <option value="Governor">Governor</option>
-          </select>
-          <select
-            onChange={(e) => setElectionType(e.target.value)}
-            value={electionType}
-            className="bg-gray-800 border border-gray-700 text-white font-bold py-2 px-4 rounded-lg"
-          >
-            <option value="GENERAL">General</option>
-            <option value="PRIMARY">Primary</option>
-          </select>
-        </div>
-        {Object.keys(availableLayers).length > 1 && (
-          <select
-            onChange={handleLayerChange}
-            value={currentLayerKey}
-            className="bg-gray-800 border border-gray-700 text-white font-bold py-2 px-4 rounded-lg"
-          >
-            {Object.entries(availableLayers).map(([key, { name }]) => (
-              <option key={key} value={key}>{name}</option>
-            ))}
-          </select>
-        )}
+    <div className="container mx-auto px-4 py-8">
+      <div className="text-center mb-8">
+        <h1 className="text-5xl font-extrabold text-white tracking-tighter">
+          {safeCall(() => countryCode.toUpperCase()) || 'Country'} Electoral Map
+        </h1>
+        <p className="text-gray-400 mt-2 text-lg">Interactive election results and voting interface.</p>
       </div>
-      <p className="mb-4 text-text-secondary">
-        Displaying {availableLayers[currentLayerKey]?.name || ''} level data.
-      </p>
+
+      <div className="flex flex-col lg:flex-row gap-6 mb-6">
+        <div className="flex flex-col gap-4 lg:w-1/3">
+          <div>
+            <label htmlFor="layer-select" className="block text-sm font-medium text-gray-300 mb-2">
+              Map Layer
+            </label>
+            <select
+              id="layer-select"
+              value={currentLayerKey}
+              onChange={handleLayerChange}
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-accent"
+            >
+              {layerKeys.map(key => (
+                <option key={key} value={key}>
+                  {safeCall(() => layers[key].name) || key}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="office-select" className="block text-sm font-medium text-gray-300 mb-2">
+              Office
+            </label>
+            <select
+              id="office-select"
+              value={office}
+              onChange={handleOfficeChange}
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-accent"
+            >
+              <option value="President">President</option>
+              <option value="Governor">Governor</option>
+              <option value="Senator">Senator</option>
+              <option value="Representative">Representative</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="election-type-select" className="block text-sm font-medium text-gray-300 mb-2">
+              Election Type
+            </label>
+            <select
+              id="election-type-select"
+              value={electionType}
+              onChange={handleElectionTypeChange}
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-accent"
+            >
+              <option value="General">General Election</option>
+              <option value="Primary">Primary Election</option>
+              <option value="Special">Special Election</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       <div className="border border-border rounded-lg overflow-hidden h-[70vh]">
         {geoJsonData ? (
           <MapView

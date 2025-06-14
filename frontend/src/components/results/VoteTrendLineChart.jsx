@@ -1,23 +1,28 @@
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { safeCall, safeCallAsync } from '../../utils/safeCall';
 
 const VoteTrendLineChart = ({ data }) => {
 
     // Process the data for Recharts
     const chartData = [];
-    const candidates = Object.keys(data);
+    const candidates = safeCall(() => Object.keys(data)) || [];
     if (candidates.length > 0) {
-        const timestamps = Object.keys(data[candidates[0]]);
+        const timestamps = safeCall(() => Object.keys(data[candidates[0]])) || [];
         timestamps.forEach(ts => {
-            const entry = { time: new Date(ts).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) };
+            const entry = { time: safeCall(() => new Date(ts).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})) || ts };
             candidates.forEach(c => {
-                entry[c] = data[c][ts];
+                entry[c] = safeCall(() => data[c][ts]) || 0;
             });
             chartData.push(entry);
         });
     }
     
     const colors = ['#8884d8', '#82ca9d', '#ffc658'];
+
+    const formatTickValue = (value) => {
+        return safeCall(() => new Intl.NumberFormat('en-US', { notation: 'compact' }).format(value)) || value;
+    };
 
     return (
         <div className="mt-6">
@@ -26,7 +31,7 @@ const VoteTrendLineChart = ({ data }) => {
                 <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#4a5568" />
                     <XAxis dataKey="time" stroke="#a0aec0" />
-                    <YAxis stroke="#a0aec0" tickFormatter={(value) => new Intl.NumberFormat('en-US', { notation: 'compact' }).format(value)} />
+                    <YAxis stroke="#a0aec0" tickFormatter={formatTickValue} />
                     <Tooltip
                         contentStyle={{
                             backgroundColor: '#2d3748',
@@ -39,7 +44,7 @@ const VoteTrendLineChart = ({ data }) => {
                             key={candidate}
                             type="monotone" 
                             dataKey={candidate} 
-                            stroke={colors[index % colors.length]}
+                            stroke={safeCall(() => colors[index % colors.length]) || '#8884d8'}
                             strokeWidth={2}
                             dot={false}
                         />
