@@ -1,64 +1,100 @@
-// Service Worker for aggressive cache clearing - v2.1.2
-const CACHE_NAME = 'mockgovsim-v2.1.2-20250614-071000';
+// NUCLEAR SERVICE WORKER for cache destruction - v2.1.2
+const CACHE_NAME = 'mockgovsim-NUCLEAR-v2.1.2-' + Date.now();
 
-// Clear all existing caches on install
+console.log('💥 NUCLEAR SERVICE WORKER LOADING');
+
+// IMMEDIATE cache destruction on install
 self.addEventListener('install', (event) => {
-  console.log('Service Worker installing - clearing all caches');
+  console.log('💥 NUCLEAR Service Worker installing - DESTROYING ALL CACHES');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
+      console.log('💥 Found caches to destroy:', cacheNames);
       return Promise.all(
         cacheNames.map((cacheName) => {
-          console.log('Deleting cache:', cacheName);
+          console.log('💥 NUKING cache:', cacheName);
           return caches.delete(cacheName);
         })
       );
     }).then(() => {
-      console.log('All caches cleared, forcing immediate activation');
+      console.log('💥 ALL CACHES DESTROYED - SKIPPING WAITING');
       return self.skipWaiting();
     })
   );
 });
 
-// Take control immediately
+// Take control immediately and force reload
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker activating - taking control');
+  console.log('💥 NUCLEAR Service Worker activating - TAKING CONTROL');
   event.waitUntil(
     self.clients.claim().then(() => {
-      console.log('Service Worker now controlling all clients');
-      // Force reload all clients
+      console.log('💥 NUCLEAR Service Worker controlling all clients');
+      
+      // Force reload ALL clients immediately
       return self.clients.matchAll().then((clients) => {
         clients.forEach((client) => {
-          console.log('Reloading client:', client.url);
-          client.postMessage({ type: 'FORCE_RELOAD' });
+          console.log('💥 FORCING NUCLEAR RELOAD of client:', client.url);
+          client.postMessage({ 
+            type: 'FORCE_RELOAD',
+            timestamp: Date.now(),
+            message: 'NUCLEAR CACHE CLEARING COMPLETE'
+          });
         });
       });
     })
   );
 });
 
-// Intercept all fetch requests and bypass cache
+// Handle skip waiting message
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('💥 SKIP_WAITING received - activating immediately');
+    self.skipWaiting();
+  }
+});
+
+// NUCLEAR fetch interception - bypass ALL caches
 self.addEventListener('fetch', (event) => {
-  // For JavaScript and CSS files, always fetch fresh
-  if (event.request.url.includes('.js') || event.request.url.includes('.css')) {
-    console.log('Bypassing cache for:', event.request.url);
+  const url = event.request.url;
+  
+  // For ANY JavaScript or CSS files, ALWAYS fetch fresh with nuclear headers
+  if (url.includes('.js') || url.includes('.css') || url.includes('main.jsx')) {
+    console.log('💥 NUCLEAR BYPASS for:', url);
+    
     event.respondWith(
       fetch(event.request, {
-        cache: 'no-cache',
+        cache: 'no-store',
         headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache'
+          'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         }
-      }).catch(() => {
-        // Fallback to cache if network fails
-        return caches.match(event.request);
+      }).then(response => {
+        // Clone and add nuclear headers to response
+        const newHeaders = new Headers(response.headers);
+        newHeaders.set('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+        newHeaders.set('Pragma', 'no-cache');
+        newHeaders.set('Expires', '0');
+        
+        return new Response(response.body, {
+          status: response.status,
+          statusText: response.statusText,
+          headers: newHeaders
+        });
+      }).catch(error => {
+        console.error('💥 NUCLEAR fetch failed:', error);
+        // Don't fallback to cache - force error
+        throw error;
       })
     );
   } else {
-    // For other requests, use normal caching
+    // For other requests, still bypass cache but allow fallback
     event.respondWith(
-      caches.match(event.request).then((response) => {
-        return response || fetch(event.request);
+      fetch(event.request, { cache: 'no-store' }).catch(() => {
+        // Only fallback for non-JS/CSS files
+        return caches.match(event.request);
       })
     );
   }
-}); 
+});
+
+console.log('💥 NUCLEAR SERVICE WORKER READY FOR DESTRUCTION'); 
