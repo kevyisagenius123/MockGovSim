@@ -31,6 +31,9 @@ public class BillController {
     @GetMapping
     public ResponseEntity<List<BillDto>> getAllBills() {
         List<Bill> bills = billService.getAllBills();
+        if (bills.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
         return ResponseEntity.ok(bills.stream().map(this::convertToDto).collect(Collectors.toList()));
     }
 
@@ -44,8 +47,14 @@ public class BillController {
     public ResponseEntity<BillDto> getLatestBill() {
         try {
             Bill latestBill = billService.getLatestBill();
+            if (latestBill == null) {
+                return ResponseEntity.noContent().build();
+            }
             return ResponseEntity.ok(convertToDto(latestBill));
         } catch (Exception e) {
+            // Log the exception for debugging purposes
+            // In a real app, you'd use a proper logger
+            System.out.println("Error fetching latest bill: " + e.getMessage());
             return ResponseEntity.notFound().build();
         }
     }
