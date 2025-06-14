@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getAmendmentsForBill } from '../../api/legislationApi';
+import { safeCall, safeCallAsync } from '../../utils/safeCall';
 
 const AttachedAmendmentsViewer = ({ billId }) => {
     const [amendments, setAmendments] = useState([]);
@@ -8,17 +9,23 @@ const AttachedAmendmentsViewer = ({ billId }) => {
 
     useEffect(() => {
         if (!billId) return;
-        setIsLoading(true);
-        getAmendmentsForBill(billId)
-            .then(response => {
-                setAmendments(response.data);
-                setIsLoading(false);
-            })
-            .catch(error => {
+        
+        const fetchAmendments = async () => {
+            setIsLoading(true);
+            try {
+                const response = await safeCallAsync(() => getAmendmentsForBill(billId));
+                setAmendments(response?.data || []);
+                setError(null);
+            } catch (error) {
                 console.error('Failed to fetch amendments:', error);
                 setError('Could not load amendments for this bill.');
+                setAmendments([]);
+            } finally {
                 setIsLoading(false);
-            });
+            }
+        };
+
+        safeCall(fetchAmendments);
     }, [billId]);
 
     if (isLoading) {

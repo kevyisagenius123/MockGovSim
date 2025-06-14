@@ -17,13 +17,13 @@ public class SpeechController {
     private SpeechService speechService;
 
     @PostMapping
-    public ResponseEntity<Speech> giveSpeech(@PathVariable Long billId, @RequestBody SpeechRequestDto speechRequest) {
+    public ResponseEntity<Speech> giveSpeech(@PathVariable("billId") Long billId, @RequestBody SpeechRequestDto speechRequest) {
         Speech newSpeech = speechService.giveSpeech(billId, speechRequest.getUserId(), speechRequest.getText());
         return ResponseEntity.ok(newSpeech);
     }
 
     @GetMapping
-    public ResponseEntity<List<Speech>> getSpeeches(@PathVariable Long billId) {
+    public ResponseEntity<List<Speech>> getSpeeches(@PathVariable("billId") Long billId) {
         List<Speech> speeches = speechService.getSpeechesForBill(billId);
         return ResponseEntity.ok(speeches);
     }

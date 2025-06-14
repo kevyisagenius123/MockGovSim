@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getSpeeches, getAmendmentsForBill } from '../../api/legislationApi';
+import { safeCall, safeCallAsync } from '../../utils/safeCall';
 import { ClockIcon, ChatBubbleBottomCenterTextIcon, DocumentPlusIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 
 const eventIcons = {
@@ -27,20 +28,20 @@ const LiveBillTracker = ({ bill }) => {
                 };
 
                 const [speechResponse, amendmentResponse] = await Promise.all([
-                    getSpeeches(bill.id),
-                    getAmendmentsForBill(bill.id)
+                    safeCallAsync(() => getSpeeches(bill.id)),
+                    safeCallAsync(() => getAmendmentsForBill(bill.id))
                 ]);
 
-                const speechEvents = speechResponse.data.map(s => ({
+                const speechEvents = (speechResponse?.data || []).map(s => ({
                     type: 'SPEECH',
                     date: s.createdAt,
-                    description: `A speech was delivered by sponsor ${s.speakerId}.`
+                    description: `A speech was delivered by speaker ${s.speaker?.username || s.speakerId || 'Unknown'}.`
                 }));
 
-                const amendmentEvents = amendmentResponse.data.map(a => ({
+                const amendmentEvents = (amendmentResponse?.data || []).map(a => ({
                     type: 'AMENDMENT_PROPOSED',
                     date: a.createdAt,
-                    description: `An amendment was proposed by sponsor ${a.sponsor.username || a.sponsorId}. Status: ${a.status}`
+                    description: `An amendment was proposed by sponsor ${a.sponsor?.username || a.sponsorId || 'Unknown'}. Status: ${a.status || 'Unknown'}`
                 }));
 
                 const allEvents = [billCreationEvent, ...speechEvents, ...amendmentEvents];
@@ -50,12 +51,19 @@ const LiveBillTracker = ({ bill }) => {
             } catch (err) {
                 console.error("Failed to fetch bill events:", err);
                 setError("Could not load bill timeline.");
+                // Set fallback events with just the bill creation
+                const fallbackEvents = [{
+                    type: 'BILL_INTRODUCED',
+                    date: bill.createdAt,
+                    description: `Bill "${bill.title}" was introduced.`
+                }];
+                setEvents(fallbackEvents);
             } finally {
                 setIsLoading(false);
             }
         };
 
-        fetchEvents();
+        safeCall(fetchEvents);
     }, [bill]);
 
     if (isLoading) return <div className="p-4 text-center">Loading Bill History...</div>;
