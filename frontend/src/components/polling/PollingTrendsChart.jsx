@@ -151,11 +151,16 @@ const PollingTrendsChart = ({ region = 'National', electionType = 'Presidential'
 };
 
 function transformDataForChart(apiData) {
+    if (!apiData || typeof apiData !== 'object') {
+        return { data: [], candidates: [] };
+    }
     const dateMap = new Map();
     const allCandidates = Object.keys(apiData);
 
     allCandidates.forEach(candidate => {
-        apiData[candidate].forEach(point => {
+        const points = Array.isArray(apiData[candidate]) ? apiData[candidate] : [];
+        points.forEach(point => {
+            if (!point || !point.date) return;
             if (!dateMap.has(point.date)) {
                 const initialData = { date: point.date };
                 allCandidates.forEach(c => initialData[c] = null);
