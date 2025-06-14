@@ -19,7 +19,12 @@ const FirmDetailPage = () => {
 
                 // Fetch polls for the firm
                 const pollsResponse = await apiClient.get(`/polling/polls/firm/${firmId}`);
-                setPolls(pollsResponse.data);
+                if (Array.isArray(pollsResponse.data)) {
+                    setPolls(pollsResponse.data);
+                } else {
+                    setPolls([]);
+                    console.error("Polls API did not return an array:", pollsResponse.data);
+                }
                 
                 setError(null);
             } catch (err) {

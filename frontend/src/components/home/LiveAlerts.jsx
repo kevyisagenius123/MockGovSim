@@ -9,8 +9,9 @@ const alertIcons = {
 };
 
 const LiveAlerts = ({ alerts }) => {
-    // Show only the 5 most recent alerts
-    const recentAlerts = alerts.slice(0, 5);
+    // Ensure alerts is an array before trying to slice it.
+    const safeAlerts = Array.isArray(alerts) ? alerts : [];
+    const recentAlerts = safeAlerts.slice(0, 5);
 
     return (
         <div className="bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-700 h-full">
@@ -37,7 +38,7 @@ const LiveAlerts = ({ alerts }) => {
                         </motion.div>
                     ))}
                 </AnimatePresence>
-                {alerts.length === 0 && (
+                {safeAlerts.length === 0 && (
                      <p className="text-gray-500 text-center py-4">No new alerts.</p>
                 )}
             </div>

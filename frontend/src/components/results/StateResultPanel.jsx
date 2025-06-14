@@ -47,16 +47,16 @@ const StateResultPanel = ({ stateCode }) => {
             
             <div className="space-y-8">
                 {results.presidentialResults && (
-                    <VoteBreakdownTable title="Presidential Results" results={results.presidentialResults} />
+                    <VoteBreakdownTable title="Presidential Results" results={Array.isArray(results.presidentialResults) ? results.presidentialResults : []} />
                 )}
 
                 {/* Placeholder for Gubernatorial results if they exist */}
                 {results.gubernatorialResults && (
-                     <VoteBreakdownTable title="Gubernatorial Results" results={results.gubernatorialResults} />
+                     <VoteBreakdownTable title="Gubernatorial Results" results={Array.isArray(results.gubernatorialResults) ? results.gubernatorialResults : []} />
                 )}
 
                 {results.voteTrend && (
-                    <VoteTrendLineChart data={results.voteTrend} />
+                    <VoteTrendLineChart data={Array.isArray(results.voteTrend) ? results.voteTrend : []} />
                 )}
 
                 <div className="mt-8">

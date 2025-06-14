@@ -12,10 +12,10 @@ import { motion } from 'framer-motion';
 import toast, { Toaster } from 'react-hot-toast';
 
 const PollingDashboardPage = () => {
-    const [livePollingData, setLivePollingData] = useState(null);
+    const [livePollingData, setLivePollingData] = useState({ national: {}, states: [], trends: [] });
     const [competitiveRaces, setCompetitiveRaces] = useState([]);
     const [liveNews, setLiveNews] = useState([]);
-    const [liveStats, setLiveStats] = useState({});
+    const [liveStats, setLiveStats] = useState({ aiInsights: [] });
     const [isLoading, setIsLoading] = useState(true);
 
     const loadLiveData = useCallback(async () => {
@@ -27,10 +27,10 @@ const PollingDashboardPage = () => {
                 liveDataService.getLiveStats()
             ]);
 
-            setLivePollingData(polling);
-            setCompetitiveRaces(races || []);
-            setLiveNews(news || []);
-            setLiveStats(stats || {});
+            setLivePollingData(polling || { national: {}, states: [], trends: [] });
+            setCompetitiveRaces(Array.isArray(races) ? races : []);
+            setLiveNews(Array.isArray(news) ? news : []);
+            setLiveStats(stats || { aiInsights: [] });
         } catch (error) {
             console.error("Error loading live data:", error);
             toast.error('Failed to fetch live data.');
@@ -82,13 +82,13 @@ const PollingDashboardPage = () => {
                             <ElectoralCollegeChart pollingData={livePollingData} />
                         </motion.div>
                         <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.5 }}>
-                            <NationwideAverageBar nationalAverages={livePollingData?.national} />
+                            <NationwideAverageBar nationalAverages={livePollingData?.national || {}} />
                         </motion.div>
                         <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.6 }}>
-                            <USNationalMap pollingData={livePollingData} />
+                            <USNationalMap pollingData={livePollingData || {}} />
                         </motion.div>
                         <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.8 }}>
-                            <PollingTrendsChart trendData={livePollingData?.trendData} />
+                            <PollingTrendsChart trendData={livePollingData?.trends || []} />
                         </motion.div>
                     </div>
                     <div className="col-span-12 lg:col-span-3 space-y-6">
@@ -99,7 +99,7 @@ const PollingDashboardPage = () => {
                             <LatestPolls />
                         </motion.div>
                         <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7, delay: 1.1 }}>
-                           <AIInsights insights={liveStats?.aiInsights} />
+                           <AIInsights insights={liveStats?.aiInsights || []} />
                         </motion.div>
                     </div>
                 </div>

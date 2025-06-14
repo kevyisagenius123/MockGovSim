@@ -63,19 +63,19 @@ const CongressionalCommandCenterPage = () => {
                     }`}>
                         {bill.status}
                     </span>
-                    <span className="text-sm text-gray-600">Sponsor: {bill.sponsor.username}</span>
+                    <span className="text-sm text-gray-600">Sponsor: {bill.sponsor?.username || 'N/A'}</span>
                 </div>
             </header>
 
             <main className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-8">
-                    <LiveBillTracker bill={bill} />
+                    <LiveBillTracker bill={bill || {}} />
                     <ThreeDChamberVisualization />
                 </div>
 
                 <aside className="space-y-8">
-                    <BillViabilityPredictor bill={bill} whipBreakdown={whipBreakdown} />
-                    <WhipBreakdownChart billId={billId} initialData={whipBreakdown} />
+                    <BillViabilityPredictor bill={bill || {}} whipBreakdown={whipBreakdown || {}} />
+                    <WhipBreakdownChart billId={billId} initialData={whipBreakdown || {}} />
                     <AttachedAmendmentsViewer billId={billId} />
                 </aside>
             </main>

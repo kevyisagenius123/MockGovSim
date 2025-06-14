@@ -11,7 +11,12 @@ const NewsGrid = () => {
             try {
                 setLoading(true);
                 const response = await getArticles();
-                setArticles(response.data);
+                if(Array.isArray(response.data)) {
+                    setArticles(response.data);
+                } else {
+                    console.error("Articles API did not return an array:", response.data);
+                    setArticles([]);
+                }
             } catch (err) {
                 console.error("Failed to load articles", err);
             } finally {

@@ -13,7 +13,12 @@ const CandidatesPage = () => {
             setIsLoading(true);
             try {
                 const response = await apiClient.get('/candidates/approved');
-                setCandidates(response.data);
+                if (Array.isArray(response.data)) {
+                    setCandidates(response.data);
+                } else {
+                    setCandidates([]);
+                    console.error("API did not return an array for candidates:", response.data);
+                }
             } catch (err) {
                 setError('Failed to fetch candidates.');
                 console.error(err);

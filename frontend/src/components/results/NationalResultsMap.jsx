@@ -24,7 +24,7 @@ const NationalResultsMap = ({ onStateSelect, viewLevel, selectedState }) => {
                         resultsApi.getNationalResults(), // This is mock data for now
                         fetch('/maps/USA/gz_2010_us_040_00_500k.json').then(res => res.json())
                     ]);
-                    setResultsData(resultsRes.data);
+                    setResultsData(Array.isArray(resultsRes.data) ? resultsRes.data : []);
                     setGeoJsonData(geoJsonRes);
                 } else if (viewLevel === 'counties' && selectedState) {
                     const [countyResultsRes, allCountiesGeoJson] = await Promise.all([
@@ -38,7 +38,7 @@ const NationalResultsMap = ({ onStateSelect, viewLevel, selectedState }) => {
                         features: allCountiesGeoJson.features.filter(f => f.properties.STATE === stateFips)
                     };
                     
-                    setResultsData(countyResultsRes.data);
+                    setResultsData(Array.isArray(countyResultsRes.data) ? countyResultsRes.data : []);
                     setGeoJsonData(stateGeoJson);
                 }
             } catch (error) {

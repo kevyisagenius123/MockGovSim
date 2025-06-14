@@ -11,7 +11,12 @@ const CommentSection = ({ articleId }) => {
         try {
             setLoading(true);
             const response = await getCommentsForArticle(articleId);
-            setComments(response.data);
+            if (Array.isArray(response.data)) {
+                setComments(response.data);
+            } else {
+                setComments([]);
+                console.error("Comments API did not return an array:", response.data);
+            }
         } catch (err) {
             console.error("Failed to load comments", err);
         } finally {

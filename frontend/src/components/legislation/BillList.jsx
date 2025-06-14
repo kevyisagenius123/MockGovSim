@@ -10,9 +10,10 @@ const BillList = ({ onBillsLoaded }) => {
     useEffect(() => {
         getBills()
             .then(response => {
-                setBills(response.data);
+                const fetchedBills = Array.isArray(response.data) ? response.data : [];
+                setBills(fetchedBills);
                 if (onBillsLoaded) {
-                    onBillsLoaded(response.data);
+                    onBillsLoaded(fetchedBills);
                 }
             })
             .catch(error => {

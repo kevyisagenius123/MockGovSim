@@ -70,10 +70,13 @@ const HomePage = () => {
         };
     }, [loadLiveData]);
 
-    const nationalAverages = Object.entries(livePollingData.national || {}).map(([name, data]) => ({
+    const nationalAverages = Object.entries(livePollingData?.national || {}).map(([name, data]) => ({
         name,
-        ...data
+        ...(data || {})
     }));
+
+    const safeLiveNews = Array.isArray(liveNews) ? liveNews : [];
+    const safeCompetitiveRaces = Array.isArray(competitiveRaces) ? competitiveRaces : [];
 
     return (
         <div className="bg-gray-900 text-white min-h-screen font-sans">
@@ -121,7 +124,7 @@ const HomePage = () => {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.7, delay: 0.5 }}
                         >
-                             <LiveAlerts alerts={liveNews} />
+                             <LiveAlerts alerts={safeLiveNews} />
                         </motion.div>
                     </div>
 
@@ -164,7 +167,7 @@ const HomePage = () => {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.7, delay: 0.7 }}
                         >
-                            <CompetitiveRaces races={competitiveRaces} />
+                            <CompetitiveRaces races={safeCompetitiveRaces} />
                         </motion.div>
                         <motion.div
                             initial={{ opacity: 0, x: 50 }}
@@ -184,7 +187,7 @@ const HomePage = () => {
                 </div>
 
                 <div className="mt-8">
-                    <BreakingNewsTicker newsItems={liveNews} />
+                    <BreakingNewsTicker newsItems={safeLiveNews} />
                 </div>
 
             </main>
