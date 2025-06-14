@@ -35,7 +35,7 @@ public class PollAggregationService {
             for (Poll poll : polls) {
                 if (poll.getResults() != null) {
                     for (PollResult result : poll.getResults()) {
-                        if (result.getCandidateName() != null && result.getPercentage() != null) {
+                        if (result.getCandidateName() != null) {
                             trendData.computeIfAbsent(result.getCandidateName(), k -> new ArrayList<>())
                                      .add(new TrendPoint(poll.getEndDate(), result.getPercentage()));
                         }
