@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import * as liveDataService from '../services/liveDataService';
+import liveDataService from '../services/liveDataService';
 import { safeCall, safeCallAsync } from '../utils/safeCall';
 import USNationalMap from '../components/map/USNationalMap';
 import ElectoralCollegeChart from '../components/charts/ElectoralCollegeChart';
@@ -85,10 +85,10 @@ const HomePage = () => {
     const loadLiveData = useCallback(async () => {
         try {
             const [polling, races, news, stats] = await Promise.all([
-                safeCallAsync(liveDataService.getLivePollingData),
-                safeCallAsync(liveDataService.getCompetitiveRaces),
-                safeCallAsync(liveDataService.getLiveNews),
-                safeCallAsync(liveDataService.getLiveStats)
+                safeCallAsync(() => liveDataService.getLivePollingData()),
+                safeCallAsync(() => liveDataService.getCompetitiveRaces()),
+                safeCallAsync(() => liveDataService.getLiveNews()),
+                safeCallAsync(() => liveDataService.getLiveStats())
             ]);
 
             setLivePollingData(polling || { national: {}, states: [], trends: [] });
@@ -110,14 +110,6 @@ const HomePage = () => {
                 if (data.type === 'POLL_UPDATE' || data.type === 'NEWS_UPDATE') {
                     loadLiveData(); 
                 }
-            },
-            () => {
-                console.log("WebSocket connected for live updates");
-                toast.success("Connected to live feed!");
-            },
-            () => {
-                console.log("WebSocket disconnected");
-                toast.error("Live feed disconnected.");
             }
         );
 
