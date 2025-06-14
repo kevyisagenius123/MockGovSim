@@ -13,6 +13,25 @@
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx?v=2.1.2-20250614-070500"></script>
+    <script>
+      // Register service worker for aggressive cache clearing
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js?v=2.1.2-20250614-071000')
+          .then((registration) => {
+            console.log('Service Worker registered:', registration);
+            // Listen for messages from service worker
+            navigator.serviceWorker.addEventListener('message', (event) => {
+              if (event.data.type === 'FORCE_RELOAD') {
+                console.log('Service Worker requesting reload');
+                window.location.reload(true);
+              }
+            });
+          })
+          .catch((error) => {
+            console.log('Service Worker registration failed:', error);
+          });
+      }
+    </script>
+    <script type="module" src="/src/main.jsx?v=2.1.2-20250614-071000"></script>
   </body>
 </html> 
