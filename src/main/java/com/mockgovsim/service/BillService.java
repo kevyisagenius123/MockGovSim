@@ -36,10 +36,12 @@ public class BillService {
         return billRepository.save(bill);
     }
 
+    @Transactional(readOnly = true)
     public List<Bill> getAllBills() {
         return billRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public Bill getBillById(Long id) {
         return billRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Bill not found"));
@@ -56,8 +58,9 @@ public class BillService {
         return billRepository.save(bill);
     }
 
+    @Transactional(readOnly = true)
     public Bill getLatestBill() {
         return billRepository.findTopByOrderByCreatedAtDesc()
-                .orElseThrow(() -> new ResourceNotFoundException("No bills found."));
+                .orElse(null);
     }
 } 
