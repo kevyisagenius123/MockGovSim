@@ -1,4 +1,5 @@
-import { useAuthStore } from '../store/useAuthStore';
+import React, { useState } from 'react';
+import useAuthStore from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
 
 const RegisterPage = () => {
@@ -10,9 +11,11 @@ const RegisterPage = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const success = await register({ username, email, password });
-        if (success) {
+        try {
+            await register(username, email, password);
             navigate('/dashboard');
+        } catch (error) {
+            console.error('Registration failed:', error);
         }
     };
 

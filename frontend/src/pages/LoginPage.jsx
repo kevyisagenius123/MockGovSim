@@ -1,4 +1,5 @@
-import { useAuthStore } from '../store/useAuthStore';
+import React, { useState } from 'react';
+import useAuthStore from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
 
 const LoginPage = () => {
@@ -9,9 +10,11 @@ const LoginPage = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const success = await login({ username, password });
-        if (success) {
+        try {
+            await login(username, password);
             navigate('/dashboard');
+        } catch (error) {
+            console.error('Login failed:', error);
         }
     };
 
