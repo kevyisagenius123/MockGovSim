@@ -21,13 +21,21 @@ const USNationalMap = ({ pollingData }) => {
     }, [position]);
 
     const getPartyColor = (stateAbbr) => {
-        if (!pollingData?.states) return "#6B7280";
-        const stateData = pollingData.states.find(s => s.state === stateAbbr);
-        if (!stateData?.support) return "#6B7280";
-        const leadingCandidate = Object.keys(stateData.support).reduce((a, b) => stateData.support[a] > stateData.support[b] ? a : b);
+        if (!pollingData?.states || !Array.isArray(pollingData.states)) return "#6B7280";
+        const stateData = pollingData.states.find(s => s?.state === stateAbbr);
+        if (!stateData?.support || typeof stateData.support !== 'object') return "#6B7280";
         
-        if (leadingCandidate.toLowerCase().includes("biden")) return "#3B82F6";
-        if (leadingCandidate.toLowerCase().includes("trump")) return "#EF4444";
+        const supportKeys = Object.keys(stateData.support);
+        if (supportKeys.length === 0) return "#6B7280";
+        
+        const leadingCandidate = supportKeys.reduce((a, b) => {
+            const aSupport = stateData.support[a] || 0;
+            const bSupport = stateData.support[b] || 0;
+            return aSupport > bSupport ? a : b;
+        });
+        
+        if (leadingCandidate && leadingCandidate.toLowerCase().includes("biden")) return "#3B82F6";
+        if (leadingCandidate && leadingCandidate.toLowerCase().includes("trump")) return "#EF4444";
         return "#FBBF24";
     };
 
@@ -76,7 +84,8 @@ const USNationalMap = ({ pollingData }) => {
                         >
                             {/* State Geographies */}
                             <Geographies geography={statesGeoUrl}>
-                                {({ geographies }) => geographies.map(geo => {
+                                {({ geographies }) => (geographies || []).map(geo => {
+                                    if (!geo?.properties?.name) return null;
                                     const stateAbbr = abbr(geo.properties.name);
                                     const color = getPartyColor(stateAbbr);
                                     const isClicked = clickedState && clickedState.id === geo.id;
@@ -102,8 +111,8 @@ const USNationalMap = ({ pollingData }) => {
                             {position.zoom > 4 && clickedState && (
                                 <Geographies geography={countiesGeoUrl}>
                                     {({ geographies }) =>
-                                        geographies
-                                            .filter(geo => geo.id.startsWith(clickedState.id))
+                                        (geographies || [])
+                                            .filter(geo => geo?.id && clickedState?.id && geo.id.startsWith(clickedState.id))
                                             .map(geo => (
                                                 <Geography
                                                     key={geo.rsmKey}

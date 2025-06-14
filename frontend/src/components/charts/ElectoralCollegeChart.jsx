@@ -6,20 +6,26 @@ const ElectoralCollegeChart = ({ pollingData }) => {
     let smithVotes = 0;
     const totalElectoralVotes = 538;
 
-    pollingData?.states?.forEach(state => {
-      if (!state || typeof state.support !== 'object' || state.electoralVotes === undefined) {
-        return; 
-      }
-      const supportKeys = Object.keys(state.support);
-      if(supportKeys.length === 0) return;
+    if (Array.isArray(pollingData?.states)) {
+      pollingData.states.forEach(state => {
+        if (!state || typeof state.support !== 'object' || state.electoralVotes === undefined) {
+          return; 
+        }
+        const supportKeys = Object.keys(state.support);
+        if(supportKeys.length === 0) return;
 
-      const leadingCandidate = supportKeys.reduce((a, b) => state.support[a] > state.support[b] ? a : b);
-      if (leadingCandidate.includes("Doe")) {
-        doeVotes += state.electoralVotes;
-      } else if (leadingCandidate.includes("Smith")) {
-        smithVotes += state.electoralVotes;
-      }
-    });
+        const leadingCandidate = supportKeys.reduce((a, b) => {
+          const aSupport = state.support[a] || 0;
+          const bSupport = state.support[b] || 0;
+          return aSupport > bSupport ? a : b;
+        });
+              if (leadingCandidate.includes("Doe")) {
+          doeVotes += state.electoralVotes;
+        } else if (leadingCandidate.includes("Smith")) {
+          smithVotes += state.electoralVotes;
+        }
+      });
+    }
 
     const undecidedVotes = totalElectoralVotes - doeVotes - smithVotes;
     return { doeVotes, smithVotes, undecidedVotes, totalElectoralVotes };

@@ -1,22 +1,25 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { safeCall, safeCallAsync } from '../../utils/safeCall';
 
 const VoteTrendLineChart = ({ data }) => {
 
-    // Process the data for Recharts
-    const chartData = [];
-    const candidates = safeCall(() => Object.keys(data)) || [];
-    if (candidates.length > 0) {
-        const timestamps = safeCall(() => Object.keys(data[candidates[0]])) || [];
-        timestamps.forEach(ts => {
-            const entry = { time: safeCall(() => new Date(ts).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})) || ts };
-            candidates.forEach(c => {
-                entry[c] = safeCall(() => data[c][ts]) || 0;
+    // Process the data for Recharts - using immutable pattern
+    const chartData = useMemo(() => {
+        const processedData = [];
+        const candidates = safeCall(() => Object.keys(data)) || [];
+        if (candidates.length > 0) {
+            const timestamps = safeCall(() => Object.keys(data[candidates[0]])) || [];
+            timestamps.forEach(ts => {
+                const entry = { time: safeCall(() => new Date(ts).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})) || ts };
+                candidates.forEach(c => {
+                    entry[c] = safeCall(() => data[c][ts]) || 0;
+                });
+                processedData.push(entry);
             });
-            chartData.push(entry);
-        });
-    }
+        }
+        return processedData;
+    }, [data]);
     
     const colors = ['#8884d8', '#82ca9d', '#ffc658'];
 

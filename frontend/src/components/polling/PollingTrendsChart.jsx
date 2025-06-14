@@ -163,26 +163,35 @@ function transformDataForChart(apiData) {
     const dateMap = new Map();
     const allCandidates = Object.keys(apiData);
 
-    allCandidates.forEach(candidate => {
-        const points = Array.isArray(apiData[candidate]) ? apiData[candidate] : [];
-        points.forEach(point => {
-            if (!point || !point.date) return;
-            if (!dateMap.has(point.date)) {
-                const initialData = { date: point.date };
-                allCandidates.forEach(c => initialData[c] = null);
-                dateMap.set(point.date, initialData);
+    if (Array.isArray(allCandidates)) {
+        allCandidates.forEach(candidate => {
+            const points = Array.isArray(apiData[candidate]) ? apiData[candidate] : [];
+            if (Array.isArray(points)) {
+                points.forEach(point => {
+                    if (!point || !point.date) return;
+                    if (!dateMap.has(point.date)) {
+                        const initialData = { date: point.date };
+                        allCandidates.forEach(c => initialData[c] = null);
+                        dateMap.set(point.date, initialData);
+                    }
+                    const dateEntry = dateMap.get(point.date);
+                    if (dateEntry) {
+                        dateEntry[candidate] = point.value;
+                    }
+                });
             }
-            dateMap.get(point.date)[candidate] = point.value;
         });
-    });
+    }
 
     const sortedData = Array.from(dateMap.values()).sort((a, b) => new Date(a.date) - new Date(b.date));
 
     // Forward fill null values to create continuous lines
-    for (let i = 1; i < sortedData.length; i++) {
-        for (const candidate of allCandidates) {
-            if (sortedData[i][candidate] === null) {
-                sortedData[i][candidate] = sortedData[i-1][candidate];
+    if (Array.isArray(sortedData) && Array.isArray(allCandidates)) {
+        for (let i = 1; i < sortedData.length; i++) {
+            for (const candidate of allCandidates) {
+                if (sortedData[i] && sortedData[i-1] && sortedData[i][candidate] === null) {
+                    sortedData[i][candidate] = sortedData[i-1][candidate];
+                }
             }
         }
     }

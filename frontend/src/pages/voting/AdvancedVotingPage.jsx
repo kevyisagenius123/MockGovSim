@@ -111,7 +111,7 @@ const AdvancedVotingPage = () => {
     const existingIndex = newRanked.findIndex(r => r.candidateId === candidateId);
     
     if (existingIndex >= 0) {
-      newRanked[existingIndex].rank = rank;
+      newRanked[existingIndex] = { ...newRanked[existingIndex], rank };
     } else {
       newRanked.push({ candidateId, rank });
     }

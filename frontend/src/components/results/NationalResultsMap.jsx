@@ -34,10 +34,15 @@ const NationalResultsMap = ({ onStateSelect, viewLevel, selectedState }) => {
                     ]);
                     
                     const stateFips = safeCall(() => stateFipsMap[selectedState]);
-                    const stateGeoJson = safeCall(() => ({
-                        ...allCountiesGeoJson,
-                        features: allCountiesGeoJson.features.filter(f => f.properties.STATE === stateFips)
-                    })) || { features: [] };
+                    const stateGeoJson = safeCall(() => {
+                        if (!allCountiesGeoJson || !Array.isArray(allCountiesGeoJson.features)) {
+                            return { features: [] };
+                        }
+                        return {
+                            ...allCountiesGeoJson,
+                            features: allCountiesGeoJson.features.filter(f => f?.properties?.STATE === stateFips)
+                        };
+                    }) || { features: [] };
                     
                     setResultsData(safeCall(() => Array.isArray(countyResultsRes.data) ? countyResultsRes.data : []) || []);
                     setGeoJsonData(stateGeoJson);
