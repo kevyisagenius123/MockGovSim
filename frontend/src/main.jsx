@@ -1,106 +1,83 @@
+// Cache bust v2.1.1 - 2025-06-14T06:45:00Z - Force complete rebuild
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider } from 'react-router-dom'
 import router from './router'
 import './index.css'
+import { safeCall } from './utils/safeCall.js'
 
-// Enhanced global error handling
-const setupGlobalErrorHandling = () => {
-  // Catch JavaScript errors
-  window.addEventListener('error', (event) => {
-    const error = event.error;
-    if (error && error.message) {
-      if (error.message.includes('is not a function')) {
-        console.error('🔧 Function call error intercepted:', {
-          message: error.message,
-          filename: event.filename,
-          lineno: event.lineno,
-          colno: event.colno,
-          stack: error.stack,
-          timestamp: new Date().toISOString()
-        });
-        
-        // Prevent the error from propagating
-        event.preventDefault();
-        event.stopPropagation();
-        
-        // Show user-friendly message
-        console.log('🛡️ Error prevented from crashing the application');
-        
-        return true;
-      }
+// Global error handling for function call errors
+window.addEventListener('error', (event) => {
+  console.error('Global error caught:', event.error);
+  
+  // Check if it's the specific "r is not a function" error
+  if (event.error && event.error.message && event.error.message.includes('is not a function')) {
+    console.error('Function call error detected:', event.error.message);
+    console.error('Stack trace:', event.error.stack);
+    
+    // Prevent the error from crashing the app
+    event.preventDefault();
+    
+    // Try to recover by reloading if errors persist
+    const errorCount = parseInt(sessionStorage.getItem('errorCount') || '0');
+    if (errorCount < 3) {
+      sessionStorage.setItem('errorCount', (errorCount + 1).toString());
+      console.log('Attempting recovery, error count:', errorCount + 1);
+    } else {
+      console.log('Too many errors, showing fallback UI');
+      // Show fallback UI instead of infinite reload
+      const fallbackDiv = document.createElement('div');
+      fallbackDiv.innerHTML = `
+        <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif;">
+          <h2>Application Error</h2>
+          <p>The application encountered an error. Please refresh the page.</p>
+          <button onclick="window.location.reload()" style="padding: 10px 20px; margin: 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Refresh Page</button>
+          <button onclick="window.history.back()" style="padding: 10px 20px; margin: 10px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Go Back</button>
+        </div>
+      `;
+      document.body.innerHTML = '';
+      document.body.appendChild(fallbackDiv);
     }
-  });
+  }
+});
 
-  // Catch unhandled promise rejections
-  window.addEventListener('unhandledrejection', (event) => {
-    const reason = event.reason;
-    if (reason && reason.message && reason.message.includes('is not a function')) {
-      console.error('🔧 Promise rejection with function call error intercepted:', reason);
-      event.preventDefault();
-      return true;
-    }
-  });
+// Handle unhandled promise rejections
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled promise rejection:', event.reason);
+  
+  if (event.reason && event.reason.message && event.reason.message.includes('is not a function')) {
+    console.error('Promise rejection due to function call error');
+    event.preventDefault();
+  }
+});
 
-  // React error boundary fallback
-  window.addEventListener('react-error', (event) => {
-    console.error('🔧 React error intercepted:', event.detail);
-  });
-};
-
-// Initialize error handling
-setupGlobalErrorHandling();
-
-// Safe React rendering with error recovery
-const renderApp = () => {
+// Safe render function
+const safeRender = () => {
   try {
-    const root = ReactDOM.createRoot(document.getElementById('root'))
+    const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(
       <React.StrictMode>
         <RouterProvider router={router} />
       </React.StrictMode>
-    )
-    console.log('✅ Application rendered successfully')
+    );
+    
+    // Clear error count on successful render
+    sessionStorage.removeItem('errorCount');
   } catch (error) {
-    console.error('❌ Failed to render application:', error)
+    console.error('Error during React render:', error);
     
     // Fallback rendering
-    document.getElementById('root').innerHTML = `
-      <div style="
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        min-height: 100vh; 
-        background: #0d1117; 
-        color: #f0f6fc; 
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        text-align: center;
-        padding: 20px;
-      ">
-        <div style="max-width: 500px;">
-          <h1 style="color: #f85149; margin-bottom: 16px;">Application Error</h1>
-          <p style="margin-bottom: 16px;">
-            The application encountered an error during startup. This is likely a temporary issue.
-          </p>
-          <button 
-            onclick="window.location.reload()" 
-            style="
-              background: #238636; 
-              color: white; 
-              border: none; 
-              padding: 8px 16px; 
-              border-radius: 6px; 
-              cursor: pointer;
-              font-size: 14px;
-            "
-          >
-            Reload Application
-          </button>
-        </div>
+    const fallbackDiv = document.createElement('div');
+    fallbackDiv.innerHTML = `
+      <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif;">
+        <h2>Render Error</h2>
+        <p>Failed to render the application. Please refresh the page.</p>
+        <button onclick="window.location.reload()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Refresh Page</button>
       </div>
     `;
+    document.body.appendChild(fallbackDiv);
   }
 };
 
-// Render the application
-renderApp();
+// Execute safe render
+safeCall(safeRender, 'main render');
