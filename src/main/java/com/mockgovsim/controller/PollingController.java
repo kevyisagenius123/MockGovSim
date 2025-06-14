@@ -118,9 +118,9 @@ public class PollingController {
 
     @GetMapping("/trends")
     public ResponseEntity<?> getTrendline(
-            @RequestParam String region,
-            @RequestParam String electionType,
-            @RequestParam(defaultValue = "90") int daysBack) {
+            @RequestParam("region") String region,
+            @RequestParam("electionType") String electionType,
+            @RequestParam(value = "daysBack", defaultValue = "90") int daysBack) {
         try {
             // Validate input parameters
             if (region == null || region.trim().isEmpty()) {
