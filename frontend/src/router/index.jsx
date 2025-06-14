@@ -1,6 +1,5 @@
 import React from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
-import { safeCall } from '../utils/safeCall';
 
 // Layouts
 import App from '../App';
@@ -21,23 +20,62 @@ const SafeComponent = ({ component: Component, fallback, ...props }) => {
   }
 };
 
-// Safe imports - only import components that we know work
+// Landing pages
 import LandingPage from '../pages/landing/HomePage';
 import AboutPage from '../pages/landing/AboutPage';
 
-// Create a simple fallback component for testing
-const FallbackComponent = ({ pageName }) => (
-  <div className="container mx-auto px-4 py-8">
-    <div className="text-center">
-      <h1 className="text-4xl font-bold text-white mb-4">{pageName}</h1>
-      <p className="text-gray-400 mb-8">This page is temporarily using a fallback component to prevent crashes.</p>
-      <div className="bg-yellow-600 text-black p-4 rounded-lg max-w-md mx-auto">
-        <p className="font-semibold">Development Notice:</p>
-        <p>The original component for this page is being debugged. This fallback ensures the app doesn't crash.</p>
-      </div>
-    </div>
-  </div>
-);
+// Main pages
+import HomePage from '../pages/HomePage';
+import ElectionsPage from '../pages/ElectionsPage';
+import CandidatesPage from '../pages/CandidatesPage';
+import LoginPage from '../pages/LoginPage';
+import RegisterPage from '../pages/RegisterPage';
+import NewsPage from '../pages/NewsPage';
+import ArticleDetailPage from '../pages/ArticleDetailPage';
+
+// Map pages
+import CountryMapPage from '../pages/map/CountryMapPage';
+import ElectionFlipPage from '../pages/map/ElectionFlipPage';
+import RegionDeepDivePage from '../pages/map/RegionDeepDivePage';
+
+// Dashboard pages
+import DashboardPage from '../pages/dashboard/DashboardPage';
+import MyCampaignsPage from '../pages/dashboard/MyCampaignsPage';
+import DeclareCandidacyPage from '../pages/dashboard/DeclareCandidacyPage';
+import EditProfilePage from '../pages/dashboard/EditProfilePage';
+import MyRolesHistoryPage from '../pages/dashboard/MyRolesHistoryPage';
+
+// Campaign pages
+import EditCampaignPage from '../pages/campaign/EditCampaignPage';
+import CandidateProfilePage from '../pages/campaign/CandidateProfilePage';
+
+// Results pages
+import LiveResultsHubPage from '../pages/results/LiveResultsHubPage';
+import LiveResultsPage from '../pages/results/LiveResultsPage';
+import LeaderboardsPage from '../pages/results/LeaderboardsPage';
+import RegionalVoteStatsPage from '../pages/results/RegionalVoteStatsPage';
+
+// Polling pages
+import PollingDashboardPage from '../pages/polling/PollingDashboardPage';
+import MyFirmPage from '../pages/polling/MyFirmPage';
+import LaunchPollingFirmPage from '../pages/polling/LaunchPollingFirmPage';
+import FirmDetailPage from '../pages/polling/FirmDetailPage';
+import SubmitPollPage from '../pages/polling/SubmitPollPage';
+
+// Voting pages
+import VotingPage from '../pages/voting/VotingPage';
+import AdvancedVotingPage from '../pages/voting/AdvancedVotingPage';
+import VoterRegistrationPage from '../pages/voting/VoterRegistrationPage';
+
+// Legislation pages
+import LegislationDashboardPage from '../pages/legislation/LegislationDashboardPage';
+import CongressionalCommandCenterPage from '../pages/legislation/CongressionalCommandCenterPage';
+
+// Admin pages
+import AdminDashboardPage from '../pages/admin/AdminDashboardPage';
+import RoleManagerPage from '../pages/admin/RoleManagerPage';
+import DataToolsPage from '../pages/admin/DataToolsPage';
+import AdminCandidacyPanel from '../pages/admin/AdminCandidacyPanel';
 
 const router = createBrowserRouter([
     {
@@ -49,67 +87,67 @@ const router = createBrowserRouter([
             { path: "home", element: <ErrorBoundary><LandingPage /></ErrorBoundary> },
             { path: "about", element: <ErrorBoundary><AboutPage /></ErrorBoundary> },
             
-            // Use fallback components for problematic routes
-            { path: "elections", element: <ErrorBoundary><FallbackComponent pageName="Elections" /></ErrorBoundary> },
-            { path: "candidates", element: <ErrorBoundary><FallbackComponent pageName="Candidates" /></ErrorBoundary> },
-            { path: "login", element: <ErrorBoundary><FallbackComponent pageName="Login" /></ErrorBoundary> },
-            { path: "register", element: <ErrorBoundary><FallbackComponent pageName="Register" /></ErrorBoundary> },
-            { path: "legislation", element: <ErrorBoundary><FallbackComponent pageName="Legislation" /></ErrorBoundary> },
-            { path: "legislation/bill/:billId", element: <ErrorBoundary><FallbackComponent pageName="Congressional Command Center" /></ErrorBoundary> },
+            // Main application routes
+            { path: "elections", element: <ErrorBoundary><ElectionsPage /></ErrorBoundary> },
+            { path: "candidates", element: <ErrorBoundary><CandidatesPage /></ErrorBoundary> },
+            { path: "login", element: <ErrorBoundary><LoginPage /></ErrorBoundary> },
+            { path: "register", element: <ErrorBoundary><RegisterPage /></ErrorBoundary> },
+            { path: "legislation", element: <ErrorBoundary><LegislationDashboardPage /></ErrorBoundary> },
+            { path: "legislation/bill/:billId", element: <ErrorBoundary><CongressionalCommandCenterPage /></ErrorBoundary> },
             
-            // Dashboard routes with fallbacks
+            // Dashboard routes
             {
                 path: "dashboard",
-                element: <ErrorBoundary><FallbackComponent pageName="Dashboard" /></ErrorBoundary>,
+                element: <ErrorBoundary><DashboardPage /></ErrorBoundary>,
                 children: [
-                  { path: 'campaigns', element: <ErrorBoundary><FallbackComponent pageName="My Campaigns" /></ErrorBoundary> },
-                  { path: 'declare-candidacy', element: <ErrorBoundary><FallbackComponent pageName="Declare Candidacy" /></ErrorBoundary> },
-                  { path: 'profile', element: <ErrorBoundary><FallbackComponent pageName="Edit Profile" /></ErrorBoundary> },
-                  { path: 'roles', element: <ErrorBoundary><FallbackComponent pageName="My Roles History" /></ErrorBoundary> },
+                  { path: 'campaigns', element: <ErrorBoundary><MyCampaignsPage /></ErrorBoundary> },
+                  { path: 'declare-candidacy', element: <ErrorBoundary><DeclareCandidacyPage /></ErrorBoundary> },
+                  { path: 'profile', element: <ErrorBoundary><EditProfilePage /></ErrorBoundary> },
+                  { path: 'roles', element: <ErrorBoundary><MyRolesHistoryPage /></ErrorBoundary> },
                 ],
             },
             
-            { path: 'campaign/edit/:id', element: <ErrorBoundary><FallbackComponent pageName="Edit Campaign" /></ErrorBoundary> },
-            { path: 'candidate/:id', element: <ErrorBoundary><FallbackComponent pageName="Candidate Profile" /></ErrorBoundary> },
+            { path: 'campaign/edit/:id', element: <ErrorBoundary><EditCampaignPage /></ErrorBoundary> },
+            { path: 'candidate/:id', element: <ErrorBoundary><CandidateProfilePage /></ErrorBoundary> },
             
-            // Map routes with fallbacks
+            // Map routes
             { path: "map", element: <Navigate to="/map/USA" replace /> },
-            { path: "map/USA", element: <ErrorBoundary><FallbackComponent pageName="USA Electoral Map" /></ErrorBoundary> },
-            { path: "map/CAN", element: <ErrorBoundary><FallbackComponent pageName="Canada Electoral Map" /></ErrorBoundary> },
-            { path: "map/UK", element: <ErrorBoundary><FallbackComponent pageName="UK Electoral Map" /></ErrorBoundary> },
-            { path: "map/NY", element: <ErrorBoundary><FallbackComponent pageName="New York Electoral Map" /></ErrorBoundary> },
-            { path: "map/region/:id", element: <ErrorBoundary><FallbackComponent pageName="Region Deep Dive" /></ErrorBoundary> },
-            { path: "map/election-flip", element: <ErrorBoundary><FallbackComponent pageName="Election Flip" /></ErrorBoundary> },
+            { path: "map/USA", element: <ErrorBoundary><CountryMapPage /></ErrorBoundary> },
+            { path: "map/CAN", element: <ErrorBoundary><CountryMapPage /></ErrorBoundary> },
+            { path: "map/UK", element: <ErrorBoundary><CountryMapPage /></ErrorBoundary> },
+            { path: "map/NY", element: <ErrorBoundary><CountryMapPage /></ErrorBoundary> },
+            { path: "map/region/:id", element: <ErrorBoundary><RegionDeepDivePage /></ErrorBoundary> },
+            { path: "map/election-flip", element: <ErrorBoundary><ElectionFlipPage /></ErrorBoundary> },
             
-            { path: "news", element: <ErrorBoundary><FallbackComponent pageName="News" /></ErrorBoundary> },
-            { path: "articles/:articleId", element: <ErrorBoundary><FallbackComponent pageName="Article Detail" /></ErrorBoundary> },
+            { path: "news", element: <ErrorBoundary><NewsPage /></ErrorBoundary> },
+            { path: "articles/:articleId", element: <ErrorBoundary><ArticleDetailPage /></ErrorBoundary> },
             
-            // Results routes with fallbacks
-            { path: "results", element: <ErrorBoundary><FallbackComponent pageName="Live Results Hub" /></ErrorBoundary> },
-            { path: "results/live", element: <ErrorBoundary><FallbackComponent pageName="Live Results" /></ErrorBoundary> },
-            { path: "results/leaderboards", element: <ErrorBoundary><FallbackComponent pageName="Leaderboards" /></ErrorBoundary> },
-            { path: "results/regional-stats", element: <ErrorBoundary><FallbackComponent pageName="Regional Vote Stats" /></ErrorBoundary> },
+            // Results routes
+            { path: "results", element: <ErrorBoundary><LiveResultsHubPage /></ErrorBoundary> },
+            { path: "results/live", element: <ErrorBoundary><LiveResultsPage /></ErrorBoundary> },
+            { path: "results/leaderboards", element: <ErrorBoundary><LeaderboardsPage /></ErrorBoundary> },
+            { path: "results/regional-stats", element: <ErrorBoundary><RegionalVoteStatsPage /></ErrorBoundary> },
             
-            // Polling routes with fallbacks
-            { path: "polling", element: <ErrorBoundary><FallbackComponent pageName="Polling Dashboard" /></ErrorBoundary> },
-            { path: "polling/my-firm", element: <ErrorBoundary><FallbackComponent pageName="My Firm" /></ErrorBoundary> },
-            { path: "polling/apply", element: <ErrorBoundary><FallbackComponent pageName="Launch Polling Firm" /></ErrorBoundary> },
-            { path: "polling/firms", element: <ErrorBoundary><FallbackComponent pageName="Polling Firms" /></ErrorBoundary> },
-            { path: "polling/firms/:firmId", element: <ErrorBoundary><FallbackComponent pageName="Firm Detail" /></ErrorBoundary> },
-            { path: "polling/submit", element: <ErrorBoundary><FallbackComponent pageName="Submit Poll" /></ErrorBoundary> },
+            // Polling routes
+            { path: "polling", element: <ErrorBoundary><PollingDashboardPage /></ErrorBoundary> },
+            { path: "polling/my-firm", element: <ErrorBoundary><MyFirmPage /></ErrorBoundary> },
+            { path: "polling/apply", element: <ErrorBoundary><LaunchPollingFirmPage /></ErrorBoundary> },
+            { path: "polling/firms", element: <ErrorBoundary><PollingDashboardPage /></ErrorBoundary> },
+            { path: "polling/firms/:firmId", element: <ErrorBoundary><FirmDetailPage /></ErrorBoundary> },
+            { path: "polling/submit", element: <ErrorBoundary><SubmitPollPage /></ErrorBoundary> },
             
-            { path: "vote", element: <ErrorBoundary><FallbackComponent pageName="Voting" /></ErrorBoundary> },
-            { path: "vote/:region/:office/:electionType", element: <ErrorBoundary><FallbackComponent pageName="Advanced Voting" /></ErrorBoundary> },
-            { path: "voting/register", element: <ErrorBoundary><FallbackComponent pageName="Voter Registration" /></ErrorBoundary> },
+            { path: "vote", element: <ErrorBoundary><VotingPage /></ErrorBoundary> },
+            { path: "vote/:region/:office/:electionType", element: <ErrorBoundary><AdvancedVotingPage /></ErrorBoundary> },
+            { path: "voting/register", element: <ErrorBoundary><VoterRegistrationPage /></ErrorBoundary> },
             
-            // Admin routes with fallbacks
+            // Admin routes
             {
                 path: "admin",
-                element: <ErrorBoundary><FallbackComponent pageName="Admin Dashboard" /></ErrorBoundary>,
+                element: <ErrorBoundary><AdminDashboardPage /></ErrorBoundary>,
                 children: [
-                    { path: 'roles', element: <ErrorBoundary><FallbackComponent pageName="Role Manager" /></ErrorBoundary> },
-                    { path: 'data', element: <ErrorBoundary><FallbackComponent pageName="Data Tools" /></ErrorBoundary> },
-                    { path: 'candidacy', element: <ErrorBoundary><FallbackComponent pageName="Admin Candidacy Panel" /></ErrorBoundary> },
+                    { path: 'roles', element: <ErrorBoundary><RoleManagerPage /></ErrorBoundary> },
+                    { path: 'data', element: <ErrorBoundary><DataToolsPage /></ErrorBoundary> },
+                    { path: 'candidacy', element: <ErrorBoundary><AdminCandidacyPanel /></ErrorBoundary> },
                 ],
             },
         ]
