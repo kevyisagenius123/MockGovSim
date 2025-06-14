@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import * as liveDataService from '../../services/liveDataService';
+import * as liveDataService from '../services/liveDataService';
 import { safeCall, safeCallAsync } from '../utils/safeCall';
 import USNationalMap from '../components/map/USNationalMap';
 import ElectoralCollegeChart from '../components/charts/ElectoralCollegeChart';
