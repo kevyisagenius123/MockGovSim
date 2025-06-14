@@ -5,15 +5,15 @@
  * @returns {any} - The result of the function call or undefined
  */
 export const safeCall = (fn, ...args) => {
-  if (typeof fn === 'function') {
-    try {
+  try {
+    if (typeof fn === 'function') {
       return fn(...args);
-    } catch (error) {
-      console.error('Error calling function:', error);
-      return undefined;
+    } else if (fn !== null && fn !== undefined) {
+      console.warn('Expected function but got:', typeof fn, fn);
     }
-  } else {
-    console.warn('Expected function but got:', typeof fn, fn);
+    return undefined;
+  } catch (error) {
+    console.error('Error in safeCall:', error);
     return undefined;
   }
 };
@@ -25,15 +25,15 @@ export const safeCall = (fn, ...args) => {
  * @returns {Promise<any>} - The result of the async function call or undefined
  */
 export const safeCallAsync = async (fn, ...args) => {
-  if (typeof fn === 'function') {
-    try {
+  try {
+    if (typeof fn === 'function') {
       return await fn(...args);
-    } catch (error) {
-      console.error('Error calling async function:', error);
-      return undefined;
+    } else if (fn !== null && fn !== undefined) {
+      console.warn('Expected async function but got:', typeof fn, fn);
     }
-  } else {
-    console.warn('Expected function but got:', typeof fn, fn);
+    return undefined;
+  } catch (error) {
+    console.error('Error in safeCallAsync:', error);
     return undefined;
   }
 };
@@ -46,16 +46,71 @@ export const safeCallAsync = async (fn, ...args) => {
  * @returns {any} - The result of the method call or undefined
  */
 export const safeMethodCall = (obj, methodName, ...args) => {
-  if (obj && typeof obj === 'object' && typeof obj[methodName] === 'function') {
-    try {
+  try {
+    if (obj && typeof obj === 'object' && typeof obj[methodName] === 'function') {
       return obj[methodName](...args);
-    } catch (error) {
-      console.error(`Error calling method ${methodName}:`, error);
-      return undefined;
+    } else if (obj && methodName) {
+      console.warn(`Expected method ${methodName} on object but got:`, typeof obj?.[methodName], obj);
     }
-  } else {
-    console.warn(`Expected method ${methodName} on object but got:`, typeof obj?.[methodName], obj);
     return undefined;
+  } catch (error) {
+    console.error(`Error calling method ${methodName}:`, error);
+    return undefined;
+  }
+};
+
+/**
+ * Safely accesses a property on an object
+ * @param {object} obj - The object containing the property
+ * @param {string} propName - The name of the property to access
+ * @param {any} defaultValue - Default value to return if property doesn't exist
+ * @returns {any} - The property value or default value
+ */
+export const safeProp = (obj, propName, defaultValue = undefined) => {
+  try {
+    if (obj && typeof obj === 'object' && propName in obj) {
+      return obj[propName];
+    }
+    return defaultValue;
+  } catch (error) {
+    console.error(`Error accessing property ${propName}:`, error);
+    return defaultValue;
+  }
+};
+
+/**
+ * Safely executes a callback with error handling
+ * @param {function} callback - The callback function to execute
+ * @param {any} fallback - Fallback value if callback fails
+ * @returns {any} - The result of the callback or fallback value
+ */
+export const safeExecute = (callback, fallback = null) => {
+  try {
+    if (typeof callback === 'function') {
+      return callback();
+    }
+    return fallback;
+  } catch (error) {
+    console.error('Error in safeExecute:', error);
+    return fallback;
+  }
+};
+
+/**
+ * Safely renders a React component or element
+ * @param {any} component - The component or element to render
+ * @param {any} fallback - Fallback to render if component fails
+ * @returns {any} - The component or fallback
+ */
+export const safeRender = (component, fallback = null) => {
+  try {
+    if (component === null || component === undefined) {
+      return fallback;
+    }
+    return component;
+  } catch (error) {
+    console.error('Error in safeRender:', error);
+    return fallback;
   }
 };
 
