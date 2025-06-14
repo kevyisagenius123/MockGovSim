@@ -1,13 +1,14 @@
 # Stage 1: Build the frontend
-FROM node:18-alpine AS frontend
+FROM --platform=linux/amd64 node:18-alpine AS frontend
 WORKDIR /app/frontend
+ARG CACHE_BUSTER=1
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm install
 COPY frontend/ ./
 RUN npm run build
 
 # Stage 2: Build the backend
-FROM gradle:8.4.0-jdk17 AS builder
+FROM --platform=linux/amd64 gradle:8.4.0-jdk17 AS builder
 WORKDIR /app
 COPY --from=frontend /app/frontend/dist /app/src/main/resources/static
 COPY build.gradle settings.gradle gradlew ./
