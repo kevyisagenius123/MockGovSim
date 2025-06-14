@@ -33,43 +33,82 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
-        // Like, make sure the user doesn't already exist, that would be so awkward.
-        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
-            return ResponseEntity.badRequest().build(); // Or some other error
+        try {
+            // Validate input
+            if (request.getUsername() == null || request.getUsername().trim().isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
+            if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
+            if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            // Check if user already exists
+            if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            // Create and save user first
+            User user = new User();
+            user.setUsername(request.getUsername().trim());
+            user.setEmail(request.getEmail().trim());
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+            
+            // Save user first without roles
+            User savedUser = userRepository.save(user);
+
+            // Create default role after user is saved
+            UserRole defaultRole = new UserRole();
+            defaultRole.setUser(savedUser);
+            defaultRole.setType(RoleType.VOTER);
+            defaultRole.setStartDate(LocalDate.now());
+            defaultRole.setActive(true);
+            
+            // Set roles and save again
+            savedUser.setRoles(Set.of(defaultRole));
+            userRepository.save(savedUser);
+
+            var jwtToken = jwtService.generateToken(savedUser);
+            return ResponseEntity.ok(new AuthResponse(jwtToken));
+            
+        } catch (Exception e) {
+            // Log the error for debugging
+            System.err.println("Registration error: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
         }
-
-        User user = new User();
-        user.setUsername(request.getUsername());
-        user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-
-        // Every new user is, like, totally a voter by default.
-        UserRole defaultRole = new UserRole();
-        defaultRole.setUser(user);
-        defaultRole.setType(RoleType.VOTER);
-        defaultRole.setStartDate(LocalDate.now());
-        defaultRole.setActive(true);
-        user.setRoles(Set.of(defaultRole));
-
-        userRepository.save(user);
-
-        var jwtToken = jwtService.generateToken(user);
-        return ResponseEntity.ok(new AuthResponse(jwtToken));
     }
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()
-                )
-        );
-        // If we get here, the user is, like, totally authenticated!
-        var user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(); // This should, like, never happen if auth passed.
+        try {
+            // Validate input
+            if (request.getUsername() == null || request.getUsername().trim().isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
+            if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
 
-        var jwtToken = jwtService.generateToken(user);
-        return ResponseEntity.ok(new AuthResponse(jwtToken));
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getUsername().trim(),
+                            request.getPassword()
+                    )
+            );
+            
+            var user = userRepository.findByUsername(request.getUsername().trim())
+                    .orElseThrow(() -> new RuntimeException("User not found after authentication"));
+
+            var jwtToken = jwtService.generateToken(user);
+            return ResponseEntity.ok(new AuthResponse(jwtToken));
+            
+        } catch (Exception e) {
+            System.err.println("Login error: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(401).build();
+        }
     }
 } 

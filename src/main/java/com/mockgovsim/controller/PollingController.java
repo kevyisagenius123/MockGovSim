@@ -122,10 +122,26 @@ public class PollingController {
             @RequestParam String electionType,
             @RequestParam(defaultValue = "90") int daysBack) {
         try {
-            return ResponseEntity.ok(pollAggregationService.getTrendline(region, electionType, daysBack));
+            // Validate input parameters
+            if (region == null || region.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Region parameter is required");
+            }
+            if (electionType == null || electionType.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("ElectionType parameter is required");
+            }
+            if (daysBack < 1 || daysBack > 365) {
+                return ResponseEntity.badRequest().body("DaysBack must be between 1 and 365");
+            }
+
+            var result = pollAggregationService.getTrendline(region.trim(), electionType.trim(), daysBack);
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            System.err.println("Invalid argument for trends endpoint: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Invalid parameters: " + e.getMessage());
         } catch (Exception e) {
-            // Log the exception
-            return ResponseEntity.internalServerError().body("Failed to generate trendline data.");
+            System.err.println("Error in trends endpoint: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("Failed to generate trendline data: " + e.getMessage());
         }
     }
 

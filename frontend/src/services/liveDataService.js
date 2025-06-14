@@ -21,29 +21,49 @@ class LiveDataService {
         return;
       }
       
-      // Use the dynamically generated URL
-      socket = new WebSocket(wsUrl);
+      try {
+        // Use the dynamically generated URL
+        socket = new WebSocket(wsUrl);
 
-      socket.onopen = () => {
-        console.log('WebSocket connection established');
-      };
+        socket.onopen = () => {
+          console.log('WebSocket connection established');
+          reconnectInterval = 5000; // Reset reconnect interval on successful connection
+        };
 
-      socket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        this.handleWebSocketMessage(data);
-      };
+        socket.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            this.handleWebSocketMessage(data);
+            if (typeof onMessage === 'function') {
+              onMessage(data);
+            }
+          } catch (error) {
+            console.error('Error parsing WebSocket message:', error);
+          }
+        };
 
-      socket.onclose = () => {
-        console.log('WebSocket disconnected');
+        socket.onclose = (event) => {
+          console.log('WebSocket disconnected. Code:', event.code, 'Reason:', event.reason);
+          socket = null;
+          
+          // Exponential backoff for reconnection
+          setTimeout(() => {
+            if (reconnectInterval < 60000) { // Max 1 minute
+              reconnectInterval *= 1.5;
+            }
+            console.log(`Attempting to reconnect WebSocket in ${reconnectInterval}ms...`);
+            this.connectWebSocket(onMessage);
+          }, reconnectInterval);
+        };
+
+        socket.onerror = (error) => {
+          console.log('WebSocket connection failed - this is normal if WebSocket server is not available');
+          socket = null;
+        };
+      } catch (error) {
+        console.error('Error creating WebSocket connection:', error);
         socket = null;
-        // Retry connection after 30 seconds to avoid spamming
-        setTimeout(() => this.connectWebSocket(), 30000);
-      };
-
-      socket.onerror = (error) => {
-        console.log('WebSocket connection failed - this is normal if WebSocket server is not available');
-        socket = null;
-      };
+      }
     };
   }
 

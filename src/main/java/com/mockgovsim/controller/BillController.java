@@ -24,8 +24,35 @@ public class BillController {
 
     @PostMapping
     public ResponseEntity<Bill> createBill(@RequestBody BillRequestDto billRequest) {
-        Bill newBill = billService.createBill(billRequest.getTitle(), billRequest.getDescription(), billRequest.getSponsorId());
-        return ResponseEntity.ok(newBill);
+        try {
+            // Validate input
+            if (billRequest == null) {
+                return ResponseEntity.badRequest().build();
+            }
+            if (billRequest.getTitle() == null || billRequest.getTitle().trim().isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
+            if (billRequest.getDescription() == null || billRequest.getDescription().trim().isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
+            if (billRequest.getSponsorId() == null || billRequest.getSponsorId() <= 0) {
+                return ResponseEntity.badRequest().build();
+            }
+            
+            Bill newBill = billService.createBill(
+                billRequest.getTitle().trim(), 
+                billRequest.getDescription().trim(), 
+                billRequest.getSponsorId()
+            );
+            return ResponseEntity.ok(newBill);
+        } catch (IllegalArgumentException e) {
+            System.err.println("Error creating bill: " + e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            System.err.println("Unexpected error creating bill: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     @GetMapping
@@ -39,8 +66,22 @@ public class BillController {
 
     @GetMapping("/{id}")
     public ResponseEntity<BillDto> getBillById(@PathVariable Long id) {
-        Bill bill = billService.getBillById(id);
-        return ResponseEntity.ok(convertToDto(bill));
+        try {
+            // Validate input
+            if (id == null || id <= 0) {
+                return ResponseEntity.badRequest().build();
+            }
+            
+            Bill bill = billService.getBillById(id);
+            return ResponseEntity.ok(convertToDto(bill));
+        } catch (IllegalArgumentException e) {
+            System.err.println("Bill not found with id: " + id + " - " + e.getMessage());
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            System.err.println("Error fetching bill with id: " + id + " - " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     @GetMapping("/latest")
