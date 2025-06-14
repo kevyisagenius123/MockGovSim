@@ -21,4 +21,4 @@ FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 COPY --from=builder /app/build/libs/mockgovsim-0.0.1-SNAPSHOT.jar /app/application.jar
 EXPOSE 8084
-ENTRYPOINT ["java", "-jar", "/app/application.jar"] 
+ENTRYPOINT ["java", "-jar", "/app/application.jar", "--spring.profiles.active=prod"] 
