@@ -112,32 +112,51 @@ const MapView = ({ center, zoom, geoJsonData, electionResults, viewLevel, proper
     }, [resultsMap, propertyKey]);
 
     const onEachFeature = (feature, layer) => {
-        const tooltipContent = safeCall(() => createTooltipContent(feature));
-        if (layer && layer.bindTooltip) {
-            safeCall(() => layer.bindTooltip(tooltipContent, {
-                sticky: true,
-                className: 'custom-leaflet-tooltip',
-            }));
-        }
+        try {
+            const tooltipContent = safeCall(() => createTooltipContent(feature));
+            if (layer && layer.bindTooltip) {
+                safeCall(() => layer.bindTooltip(tooltipContent, {
+                    sticky: true,
+                    className: 'custom-leaflet-tooltip',
+                }));
+            }
 
-        if (layer && layer.on) {
-            safeCall(() => layer.on({
-                mouseover: highlightFeature,
-                mouseout: resetHighlight,
-                click: () => {
-                    if (onRegionClick) {
-                        const regionName = safeCall(() => feature.properties[propertyKey]);
-                        if (regionName) {
-                            safeCall(() => onRegionClick(regionName));
+            if (layer && layer.on) {
+                safeCall(() => layer.on({
+                    mouseover: highlightFeature,
+                    mouseout: resetHighlight,
+                    click: () => {
+                        try {
+                            if (onRegionClick) {
+                                const regionName = safeCall(() => feature.properties[propertyKey]);
+                                if (regionName) {
+                                    safeCall(() => onRegionClick(regionName));
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Error handling region click:', error);
                         }
                     }
-                }
-            }));
+                }));
+            }
+        } catch (error) {
+            console.error('Error setting up map feature:', error);
         }
     };
     
     const mapCenter = center || (viewLevel === 'states' ? [39.8283, -98.5795] : [36.7783, -119.4179]);
     const mapZoom = zoom || (viewLevel === 'states' ? 4 : 6);
+
+    if (!geoJsonData) {
+        return (
+            <div className="flex items-center justify-center h-full bg-gray-800 text-white">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+                    <p>Loading map data...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <MapContainer center={mapCenter} zoom={mapZoom} style={{ height: '100%', width: '100%' }} className="bg-background">
@@ -145,7 +164,7 @@ const MapView = ({ center, zoom, geoJsonData, electionResults, viewLevel, proper
                 url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                 attribution='&copy; CARTO'
             />
-            {geoJsonData && <GeoJSON data={geoJsonData} style={getStyle} onEachFeature={onEachFeature} />}
+            <GeoJSON data={geoJsonData} style={getStyle} onEachFeature={onEachFeature} />
         </MapContainer>
     );
 };

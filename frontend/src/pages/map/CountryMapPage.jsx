@@ -44,15 +44,22 @@ const CountryMapPage = () => {
 
   useEffect(() => {
     const fetchGeoJsonData = async () => {
-      if (!currentLayer) return;
+      if (!currentLayer || !currentLayer.path) {
+        console.warn('No valid layer path available');
+        return;
+      }
 
       try {
         const response = await safeCallAsync(() => fetch(currentLayer.path));
+        if (!response || !response.ok) {
+          throw new Error(`Failed to fetch: ${response?.status || 'Unknown error'}`);
+        }
         const data = await safeCallAsync(() => response.json());
         setGeoJsonData(data || null);
       } catch (error) {
         console.error("Failed to fetch GeoJSON data:", error);
         setGeoJsonData(null);
+        // Set fallback or minimal data to prevent crashes
       }
     };
 

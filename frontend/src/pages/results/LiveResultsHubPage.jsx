@@ -76,6 +76,10 @@ const LiveResultsHubPage = () => {
     const [viewLevel, setViewLevel] = useState('states'); // 'states' or 'counties'
 
     const handleStateSelect = (stateAbbreviation) => {
+        if (!stateAbbreviation) {
+            console.warn('Invalid state abbreviation provided');
+            return;
+        }
         setSelectedState(stateAbbreviation);
         setViewLevel('counties');
     };
