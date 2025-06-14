@@ -10,10 +10,13 @@ import com.mockgovsim.repository.UserRepository;
 import com.mockgovsim.repository.UserRoleRepository;
 import com.mockgovsim.service.JwtService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,6 +30,8 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class AuthController {
 
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+    
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
@@ -34,6 +39,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
 
     @PostMapping("/register")
+    @Transactional
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
         try {
             // Validate input
@@ -52,36 +58,36 @@ public class AuthController {
                 return ResponseEntity.badRequest().build();
             }
 
-            // Create and save user first
+            // Create and save user with role in single transaction
             User user = new User();
             user.setUsername(request.getUsername().trim());
             user.setEmail(request.getEmail().trim());
             user.setPassword(passwordEncoder.encode(request.getPassword()));
             
-            // Save user first without roles
+            // Save user first
             User savedUser = userRepository.save(user);
+            logger.info("User created with ID: {}", savedUser.getId());
 
-            // Create default role after user is saved
+            // Create default role with proper user reference
             UserRole defaultRole = new UserRole();
             defaultRole.setUser(savedUser);
             defaultRole.setType(RoleType.VOTER);
             defaultRole.setStartDate(LocalDate.now());
             defaultRole.setActive(true);
             
-            // Save the role separately
-            userRoleRepository.save(defaultRole);
+            // Save the role
+            UserRole savedRole = userRoleRepository.save(defaultRole);
+            logger.info("Role created with ID: {} for user: {}", savedRole.getId(), savedUser.getId());
 
-            // Reload the user to get the roles
-            User userWithRoles = userRepository.findById(savedUser.getId())
-                    .orElseThrow(() -> new RuntimeException("User not found after saving"));
-
-            var jwtToken = jwtService.generateToken(userWithRoles);
+            // Generate JWT token (User.getAuthorities() now has null check)
+            var jwtToken = jwtService.generateToken(savedUser);
+            logger.info("Registration successful for user: {}", savedUser.getUsername());
+            
             return ResponseEntity.ok(new AuthResponse(jwtToken));
             
         } catch (Exception e) {
             // Log the error for debugging
-            System.err.println("Registration error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Registration error for user {}: {}", request.getUsername(), e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -111,8 +117,7 @@ public class AuthController {
             return ResponseEntity.ok(new AuthResponse(jwtToken));
             
         } catch (Exception e) {
-            System.err.println("Login error: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Login error for user {}: {}", request.getUsername(), e.getMessage(), e);
             return ResponseEntity.status(401).build();
         }
     }

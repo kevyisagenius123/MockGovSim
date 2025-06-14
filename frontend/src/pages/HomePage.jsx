@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as liveDataService from '../../services/liveDataService';
+import { safeCall, safeCallAsync } from '../utils/safeCall';
 import USNationalMap from '../components/map/USNationalMap';
 import ElectoralCollegeChart from '../components/charts/ElectoralCollegeChart';
 import BreakingNewsTicker from '../components/news/BreakingNewsTicker';
@@ -26,16 +27,16 @@ const HomePage = () => {
     const loadLiveData = useCallback(async () => {
         try {
             const [polling, races, news, stats] = await Promise.all([
-                liveDataService.getLivePollingData(),
-                liveDataService.getCompetitiveRaces(),
-                liveDataService.getLiveNews(),
-                liveDataService.getLiveStats()
+                safeCallAsync(liveDataService.getLivePollingData),
+                safeCallAsync(liveDataService.getCompetitiveRaces),
+                safeCallAsync(liveDataService.getLiveNews),
+                safeCallAsync(liveDataService.getLiveStats)
             ]);
 
-            setLivePollingData(polling);
-            setCompetitiveRaces(races);
-            setLiveNews(news);
-            setLiveStats(stats);
+            setLivePollingData(polling || { national: {}, states: [], trends: [] });
+            setCompetitiveRaces(races || []);
+            setLiveNews(news || []);
+            setLiveStats(stats || {});
         } catch (error) {
             console.error("Error loading live data:", error);
             toast.error('Failed to fetch live data.');

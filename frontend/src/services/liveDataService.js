@@ -1,4 +1,5 @@
 import apiClient from '../api/apiClient';
+import { safeCall, safeCallAsync } from '../utils/safeCall';
 
 class LiveDataService {
   constructor() {
@@ -34,9 +35,7 @@ class LiveDataService {
           try {
             const data = JSON.parse(event.data);
             this.handleWebSocketMessage(data);
-            if (typeof onMessage === 'function') {
-              onMessage(data);
-            }
+            safeCall(onMessage, data);
           } catch (error) {
             console.error('Error parsing WebSocket message:', error);
           }
@@ -153,7 +152,7 @@ class LiveDataService {
 
   notifyCallbacks(type, data) {
     if (this.updateCallbacks.has(type)) {
-      this.updateCallbacks.get(type).forEach(callback => callback(data));
+      this.updateCallbacks.get(type).forEach(callback => safeCall(callback, data));
     }
   }
 

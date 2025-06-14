@@ -4,6 +4,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 // Layouts
 import App from '../App';
 import ErrorPage from "../pages/ErrorPage.jsx";
+import ErrorBoundary from '../components/ErrorBoundary';
 
 // --- Page Imports ---
 
