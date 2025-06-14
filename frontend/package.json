@@ -39,15 +39,31 @@
     "zustand": "^5.0.5"
   },
   "devDependencies": {
-    "@types/react": "^19.1.8",
-    "@types/react-dom": "^19.1.6",
-    "@vitejs/plugin-react": "^4.5.2",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.21",
-    "eslint": "^9.29.0",
-    "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-react-refresh": "^0.4.20",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react": "^7.34.2",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-react-refresh": "^0.4.7",
     "postcss": "^8.5.5",
-    "vite": "^6.3.5"
+    "vite": "^5.3.1"
+  },
+  "overrides": {
+    "react-simple-maps": {
+      "d3-geo": "^3.1.0",
+      "d3-color": "^3.1.0",
+      "d3-selection": "^3.0.0",
+      "d3-zoom": "^3.0.0",
+      "react": "^16.8.0 || 17.x || 18.x",
+      "react-dom": "^16.8.0 || 17.x || 18.x"
+    },
+    "d3-interpolate": {
+      "d3-color": "^3.1.0"
+    },
+    "d3-transition": {
+      "d3-color": "^3.1.0"
+    }
   }
 }
