@@ -1,3 +1,6 @@
 build:
   docker:
     web: Dockerfile
+  config:
+    VITE_API_BASE_URL: /api
+    VITE_WSS_URL: wss://mock-gov-sim-backend-6510a6ad4e4c.herokuapp.com/ws
