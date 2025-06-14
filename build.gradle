@@ -68,6 +68,13 @@ bootRun {
     classpath = sourceSets.main.runtimeClasspath
 }
 
+configurations.all {
+    resolutionStrategy {
+        force 'org.flywaydb:flyway-core:10.15.0'
+        force 'org.flywaydb:flyway-database-postgresql:10.15.0'
+    }
+}
+
 test {
     useJUnitPlatform()
 } 
