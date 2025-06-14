@@ -24,3 +24,5 @@ yarn-error.log*
 
 # Data files
 GADM/ 
+# Local Netlify folder
+.netlify
