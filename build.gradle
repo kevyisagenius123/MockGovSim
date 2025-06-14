@@ -12,11 +12,6 @@ springBoot {
     mainClass = 'com.mockgovsim.MockGovSimApplication'
 }
 
-
-configurations.all {
-    resolutionStrategy.force 'org.yaml:snakeyaml:1.33'
-}
-
 dependencies {
     // Spring Boot Starters
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -50,9 +45,6 @@ dependencies {
     implementation 'org.locationtech.jts:jts-core:1.19.0'
     implementation 'org.apache.commons:commons-math3:3.6.1'
     implementation 'com.github.javafaker:javafaker:1.0.2'
-
-    // YAML
-    implementation 'org.yaml:snakeyaml:1.33'
 
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
