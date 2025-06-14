@@ -1,0 +1,9 @@
+.git
+.idea
+build
+.gradle
+node_modules
+frontend/node_modules
+GADM
+libs
+*.log 

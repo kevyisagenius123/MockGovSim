@@ -4,6 +4,45 @@ class LiveDataService {
   constructor() {
     this.websocket = null;
     this.updateCallbacks = new Map();
+    let socket = null;
+    let reconnectInterval = 5000; // 5 seconds
+
+    // This is a bit of a hack to get the correct WebSocket URL
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsHost = window.location.host;
+    const wsUrl = `${wsProtocol}//${wsHost}/ws`;
+
+    this.connectWebSocket = (onMessage) => {
+      // This is, like, a super important check to make sure we don't have multiple sockets
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        console.log('WebSocket is already connected.');
+        return;
+      }
+
+      // Use the dynamically generated URL
+      socket = new WebSocket(wsUrl);
+
+      socket.onopen = () => {
+        console.log('WebSocket connection established');
+      };
+
+      socket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        this.handleWebSocketMessage(data);
+      };
+
+      socket.onclose = () => {
+        console.log('WebSocket disconnected');
+        socket = null;
+        // Retry connection after 30 seconds to avoid spamming
+        setTimeout(() => this.connectWebSocket(), 30000);
+      };
+
+      socket.onerror = (error) => {
+        console.log('WebSocket connection failed - this is normal if WebSocket server is not available');
+        socket = null;
+      };
+    };
   }
 
   // Real-time election countdown
@@ -75,43 +114,6 @@ class LiveDataService {
     } catch (error) {
       console.error('Error fetching live stats:', error);
       return this.getMockStats();
-    }
-  }
-
-  // WebSocket for real-time updates
-  connectWebSocket() {
-    if (this.websocket) return;
-
-    const wsUrl = process.env.NODE_ENV === 'production' 
-      ? 'wss://your-domain.com/ws' 
-      : 'ws://localhost:8084/ws';
-
-    try {
-      this.websocket = new WebSocket(wsUrl);
-
-      this.websocket.onopen = () => {
-        console.log('WebSocket connected for live updates');
-      };
-
-      this.websocket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        this.handleWebSocketMessage(data);
-      };
-
-      this.websocket.onclose = () => {
-        console.log('WebSocket disconnected');
-        this.websocket = null;
-        // Retry connection after 30 seconds to avoid spamming
-        setTimeout(() => this.connectWebSocket(), 30000);
-      };
-
-      this.websocket.onerror = (error) => {
-        console.log('WebSocket connection failed - this is normal if WebSocket server is not available');
-        this.websocket = null;
-      };
-    } catch (error) {
-      console.log('WebSocket connection error:', error);
-      this.websocket = null;
     }
   }
 
