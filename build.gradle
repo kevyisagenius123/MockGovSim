@@ -26,8 +26,8 @@ dependencies {
     // Database
     runtimeOnly 'com.h2database:h2'
     runtimeOnly 'org.postgresql:postgresql'
-    implementation 'org.flywaydb:flyway-core:10.15.0'
-    implementation 'org.flywaydb:flyway-database-postgresql:10.15.0'
+    implementation files('libs/flyway-core-10.15.0.jar')
+    implementation files('libs/flyway-database-postgresql-10.15.0.jar')
 
     // Security - JWT
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
@@ -66,13 +66,6 @@ tasks.withType(JavaCompile) {
 bootRun {
     mainClass = 'com.mockgovsim.MockGovSimApplication'
     classpath = sourceSets.main.runtimeClasspath
-}
-
-configurations.all {
-    resolutionStrategy {
-        force 'org.flywaydb:flyway-core:10.15.0'
-        force 'org.flywaydb:flyway-database-postgresql:10.15.0'
-    }
 }
 
 test {
