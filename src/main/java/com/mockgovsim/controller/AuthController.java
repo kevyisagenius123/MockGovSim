@@ -7,6 +7,7 @@ import com.mockgovsim.dto.AuthRequest;
 import com.mockgovsim.dto.AuthResponse;
 import com.mockgovsim.dto.RegisterRequest;
 import com.mockgovsim.repository.UserRepository;
+import com.mockgovsim.repository.UserRoleRepository;
 import com.mockgovsim.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +28,7 @@ import java.util.Set;
 public class AuthController {
 
     private final UserRepository userRepository;
+    private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
@@ -66,9 +68,8 @@ public class AuthController {
             defaultRole.setStartDate(LocalDate.now());
             defaultRole.setActive(true);
             
-            // Set roles and save again
-            savedUser.setRoles(Set.of(defaultRole));
-            userRepository.save(savedUser);
+            // Save the role separately
+            userRoleRepository.save(defaultRole);
 
             var jwtToken = jwtService.generateToken(savedUser);
             return ResponseEntity.ok(new AuthResponse(jwtToken));
