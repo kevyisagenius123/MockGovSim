@@ -2,7 +2,7 @@ import axios from 'axios';
 import useAuthStore from '../store/authStore';
 
 const apiClient = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL,
+    baseURL: import.meta.env.VITE_API_BASE_URL || 'https://agile-crag-41434-380373ddbfd4.herokuapp.com/api',
     headers: {
         'Content-Type': 'application/json'
     }

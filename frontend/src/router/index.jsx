@@ -1,6 +1,5 @@
 import React from 'react';
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
-import { Route } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
 
 // Layouts
