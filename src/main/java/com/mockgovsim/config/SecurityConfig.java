@@ -72,6 +72,11 @@ public class SecurityConfig {
                             "/api/results/**",
                             "/api/social/**",
                             "/api/markets/**",
+                            "/api/speeches/**",
+                            "/api/live/**",
+                            "/api/votes/**",
+                            "/api/comments/**",
+                            "/api/countries/**",
                             "/ws/**"
                         ).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("GAME_ADMIN")
