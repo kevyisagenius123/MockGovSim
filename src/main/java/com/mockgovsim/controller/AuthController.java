@@ -71,7 +71,11 @@ public class AuthController {
             // Save the role separately
             userRoleRepository.save(defaultRole);
 
-            var jwtToken = jwtService.generateToken(savedUser);
+            // Reload the user to get the roles
+            User userWithRoles = userRepository.findById(savedUser.getId())
+                    .orElseThrow(() -> new RuntimeException("User not found after saving"));
+
+            var jwtToken = jwtService.generateToken(userWithRoles);
             return ResponseEntity.ok(new AuthResponse(jwtToken));
             
         } catch (Exception e) {
