@@ -59,6 +59,22 @@
       "react": "^16.8.0 || 17.x || 18.x",
       "react-dom": "^16.8.0 || 17.x || 18.x"
     },
+    "react-query": {
+      "react": "^16.8.0 || 17.x || 18.x",
+      "react-dom": "^16.8.0 || 17.x || 18.x"
+    },
+    "react-beautiful-dnd": {
+      "react": "^16.8.0 || 17.x || 18.x",
+      "react-dom": "^16.8.0 || 17.x || 18.x"
+    },
+    "react-leaflet": {
+      "react": "^16.8.0 || 17.x || 18.x",
+      "react-dom": "^16.8.0 || 17.x || 18.x"
+    },
+    "recharts": {
+      "react": "^16.8.0 || 17.x || 18.x",
+      "react-dom": "^16.8.0 || 17.x || 18.x"
+    },
     "d3-interpolate": {
       "d3-color": "^3.1.0"
     },
