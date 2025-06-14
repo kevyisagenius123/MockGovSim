@@ -21,13 +21,13 @@ public class PledgedVoteController {
     private PledgedVoteService pledgedVoteService;
 
     @GetMapping("/bill/{billId}")
-    public ResponseEntity<List<PledgedVoteDto>> getPledgesForBill(@PathVariable Long billId) {
+    public ResponseEntity<List<PledgedVoteDto>> getPledgesForBill(@PathVariable("billId") Long billId) {
         List<PledgedVote> pledges = pledgedVoteService.findByBillId(billId);
         return ResponseEntity.ok(pledges.stream().map(this::convertToDto).collect(Collectors.toList()));
     }
 
-    @GetMapping("/whip/{billId}")
-    public ResponseEntity<Map<VoteOption, Long>> getWhipBreakdown(@PathVariable Long billId) {
+    @GetMapping("/bill/{billId}/whip-breakdown")
+    public ResponseEntity<Map<VoteOption, Long>> getWhipBreakdown(@PathVariable("billId") Long billId) {
         return ResponseEntity.ok(pledgedVoteService.getWhipBreakdown(billId));
     }
 

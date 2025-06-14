@@ -65,7 +65,7 @@ public class BillController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BillDto> getBillById(@PathVariable Long id) {
+    public ResponseEntity<BillDto> getBillById(@PathVariable("id") Long id) {
         try {
             // Validate input
             if (id == null || id <= 0) {
@@ -102,7 +102,7 @@ public class BillController {
 
     @PutMapping("/{id}/status")
     @PreAuthorize("hasAuthority('SPEAKER')")
-    public ResponseEntity<Bill> updateBillStatus(@PathVariable Long id, @RequestBody UpdateBillStatusDto statusDto) {
+    public ResponseEntity<Bill> updateBillStatus(@PathVariable("id") Long id, @RequestBody UpdateBillStatusDto statusDto) {
         Bill updatedBill = billService.updateBillStatus(id, statusDto.getStatus());
         return ResponseEntity.ok(updatedBill);
     }

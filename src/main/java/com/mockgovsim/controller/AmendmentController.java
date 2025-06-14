@@ -17,7 +17,7 @@ public class AmendmentController {
     private AmendmentService amendmentService;
 
     @GetMapping("/bill/{billId}")
-    public ResponseEntity<List<Amendment>> getAmendmentsForBill(@PathVariable Long billId) {
+    public ResponseEntity<List<Amendment>> getAmendmentsForBill(@PathVariable("billId") Long billId) {
         return ResponseEntity.ok(amendmentService.findByBillId(billId));
     }
 

@@ -84,12 +84,12 @@ public class PollingController {
 
     // --- Poll Endpoints ---
     @GetMapping("/polls/election/{electionId}")
-    public ResponseEntity<List<Poll>> getPollsByElection(@PathVariable Long electionId) {
+    public ResponseEntity<List<Poll>> getPollsByElection(@PathVariable("electionId") Long electionId) {
         return ResponseEntity.ok(pollingService.getPollsByElection(electionId));
     }
 
     @GetMapping("/polls/firm/{firmId}")
-    public ResponseEntity<List<Poll>> getPollsByFirm(@PathVariable Long firmId) {
+    public ResponseEntity<List<Poll>> getPollsByFirm(@PathVariable("firmId") Long firmId) {
         return ResponseEntity.ok(pollingService.getPollsByFirm(firmId));
     }
 
@@ -99,7 +99,7 @@ public class PollingController {
     }
 
     @GetMapping("/polls/{pollId}")
-    public ResponseEntity<Poll> getPollById(@PathVariable Long pollId) {
+    public ResponseEntity<Poll> getPollById(@PathVariable("pollId") Long pollId) {
         return pollingService.getPollById(pollId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -107,7 +107,7 @@ public class PollingController {
 
     @DeleteMapping("/polls/{pollId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> deletePoll(@PathVariable Long pollId) {
+    public ResponseEntity<?> deletePoll(@PathVariable("pollId") Long pollId) {
         try {
             pollingService.deletePoll(pollId);
             return ResponseEntity.noContent().build();
@@ -160,7 +160,7 @@ public class PollingController {
     }
 
     @GetMapping("/firms/{firmId}")
-    public ResponseEntity<PollingFirmDTO> getFirmById(@PathVariable Long firmId) {
+    public ResponseEntity<PollingFirmDTO> getFirmById(@PathVariable("firmId") Long firmId) {
         return pollingService.getFirmById(firmId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -168,7 +168,7 @@ public class PollingController {
 
     @PutMapping("/firms/{firmId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> updateFirm(@PathVariable Long firmId, @Valid @RequestBody PollingFirmApplicationRequest request) {
+    public ResponseEntity<?> updateFirm(@PathVariable("firmId") Long firmId, @Valid @RequestBody PollingFirmApplicationRequest request) {
         try {
             PollingFirm updatedFirm = pollingService.updateFirm(firmId, request);
             return ResponseEntity.ok(updatedFirm);
@@ -179,7 +179,7 @@ public class PollingController {
 
     @DeleteMapping("/firms/{firmId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> deleteFirm(@PathVariable Long firmId) {
+    public ResponseEntity<?> deleteFirm(@PathVariable("firmId") Long firmId) {
         try {
             pollingService.deleteFirm(firmId);
             return ResponseEntity.noContent().build();
