@@ -8,7 +8,7 @@ spring:
         format_sql: true
 
 server:
-  port: 8086
+  port: ${PORT:8086}
 
 application:
   security:
