@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import MapView from '../MapView';
 import resultsApi from '../../api/resultsApi';
 import { safeCall, safeCallAsync } from '../../utils/safeCall';
+import { MAP_FILES, loadMapWithFallback } from '../../utils/mapUtils';
 
 const NationalResultsMap = ({ onStateSelect, viewLevel, selectedState }) => {
     const [resultsData, setResultsData] = useState([]);
@@ -23,14 +24,14 @@ const NationalResultsMap = ({ onStateSelect, viewLevel, selectedState }) => {
                 if (viewLevel === 'states') {
                     const [resultsRes, geoJsonRes] = await Promise.all([
                         safeCallAsync(() => resultsApi.getNationalResults()), // This is mock data for now
-                        safeCallAsync(() => fetch('/maps/USA/gz_2010_us_040_00_500k.json').then(res => res.json()))
+                        loadMapWithFallback(MAP_FILES.US_STATES, { timeout: 15000, retries: 1 })
                     ]);
-                    setResultsData(safeCall(() => Array.isArray(resultsRes.data) ? resultsRes.data : []) || []);
+                    setResultsData(safeCall(() => Array.isArray(resultsRes?.data) ? resultsRes.data : []) || []);
                     setGeoJsonData(geoJsonRes || null);
                 } else if (viewLevel === 'counties' && selectedState) {
                     const [countyResultsRes, allCountiesGeoJson] = await Promise.all([
                         safeCallAsync(() => resultsApi.getCountyResults(selectedState)),
-                        safeCallAsync(() => fetch('/maps/USA/gz_2010_us_050_00_500k.json').then(res => res.json()))
+                        loadMapWithFallback(MAP_FILES.US_COUNTIES, { timeout: 20000, retries: 1 })
                     ]);
                     
                     const stateFips = safeCall(() => stateFipsMap[selectedState]);
@@ -44,7 +45,7 @@ const NationalResultsMap = ({ onStateSelect, viewLevel, selectedState }) => {
                         };
                     }) || { features: [] };
                     
-                    setResultsData(safeCall(() => Array.isArray(countyResultsRes.data) ? countyResultsRes.data : []) || []);
+                    setResultsData(safeCall(() => Array.isArray(countyResultsRes?.data) ? countyResultsRes.data : []) || []);
                     setGeoJsonData(stateGeoJson);
                 }
             } catch (error) {
