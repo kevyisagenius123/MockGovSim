@@ -11,7 +11,9 @@ FROM gradle:8.4.0-jdk17 AS builder
 WORKDIR /app
 COPY --from=frontend /app/frontend/dist /app/src/main/resources/static
 COPY build.gradle settings.gradle gradlew ./
+COPY gradle ./gradle
 COPY src ./src
+RUN chmod +x ./gradlew
 RUN ./gradlew build --no-daemon
 
 # Stage 3: Create the final image
