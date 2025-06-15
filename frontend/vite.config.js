@@ -11,7 +11,8 @@ export default defineConfig({
     },
   },
   build: {
-    // Standard build configuration
+    // Disable minification to prevent React errors
+    minify: false,
     rollupOptions: {
       output: {
         entryFileNames: `assets/[name]-[hash].js`,
@@ -20,10 +21,11 @@ export default defineConfig({
       }
     },
     // Clear output directory
-    emptyOutDir: true
+    emptyOutDir: true,
+    // Increase chunk size limit
+    chunkSizeWarningLimit: 2000
   },
   server: {
-    // Standard dev server configuration
     port: 3000,
     open: true
   }
