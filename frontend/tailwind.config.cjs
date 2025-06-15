@@ -1,29 +1,17 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [
-    './index.html',
-    './src/**/*.{js,ts,jsx,tsx}',
-  ],
-  darkMode: 'class',
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
       colors: {
-        background: {
-          DEFAULT: '#0d1117',
-          dark: '#010409',
-        },
-        primary: {
-          DEFAULT: '#58a6ff',
-          dark: '#1f6feb'
-        },
+        background: { DEFAULT: '#0d1117', dark: '#010409' },
+        primary: { DEFAULT: '#58a6ff', dark: '#1f6feb' },
         'text-primary': '#f0f6fc',
         'text-secondary': '#8b949e',
         'primary-dark': '#0d1117',
         accent: '#58a6ff',
         border: '#30363d',
         card: '#161b22',
-
-        // Party colors
         party: {
           left: '#2f81f7',
           right: '#f85149',
@@ -34,8 +22,6 @@ module.exports = {
           nationalist: '#ff7b72',
           independent: '#8b949e',
         },
-
-        // Utility
         warning: '#ffd33d',
         scandal: '#ff5555',
         disqualified: '#00000088',
@@ -65,7 +51,5 @@ module.exports = {
       },
     },
   },
-  plugins: [
-    // NO FORMS PLUGIN - this was causing Railway build failures
-  ],
+  plugins: []
 }; 
