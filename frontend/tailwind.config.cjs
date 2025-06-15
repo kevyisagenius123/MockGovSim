@@ -66,6 +66,7 @@ module.exports = {
     },
   },
   plugins: [
-    require('@tailwindcss/forms'),
+    // Temporarily removed @tailwindcss/forms for Railway deployment
+    // require('@tailwindcss/forms'),
   ],
 }; 
