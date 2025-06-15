@@ -2,10 +2,10 @@
 nixPkgs = ['nodejs-18_x', 'npm-9_x']
 
 [phases.install]
-cmds = ['cd frontend && rm -rf node_modules package-lock.json && npm install']
+cmds = ['cd frontend && rm -rf node_modules package-lock.json && npm install && npm install -g serve']
 
 [phases.build]
 cmds = ['cd frontend && npm run build']
 
 [start]
-cmd = 'npx serve -s frontend/dist -p $PORT' 
+cmd = 'serve -s frontend/dist -p $PORT' 
