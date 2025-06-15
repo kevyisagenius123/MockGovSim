@@ -1,8 +1,11 @@
 [phases.setup]
-nixPkgs = ['...', 'openjdk17']
+nixPkgs = ['nodejs-18_x', 'npm-9_x']
+
+[phases.install]
+cmds = ['cd frontend && npm ci']
 
 [phases.build]
-cmds = ['./gradlew build -x test']
+cmds = ['cd frontend && npm run build']
 
-[phases.start]
-cmd = 'java -Dserver.port=$PORT -jar build/libs/*.jar' 
+[start]
+cmd = 'npx serve -s frontend/dist -p $PORT' 
