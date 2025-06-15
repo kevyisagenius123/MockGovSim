@@ -2,7 +2,7 @@
 nixPkgs = ['nodejs-18_x', 'npm-9_x']
 
 [phases.install]
-cmds = ['cd frontend && npm ci']
+cmds = ['cd frontend && rm -rf node_modules package-lock.json && npm install']
 
 [phases.build]
 cmds = ['cd frontend && npm run build']
