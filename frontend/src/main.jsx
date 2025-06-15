@@ -1,6 +1,8 @@
 // Cache bust v2.1.2 - 2025-06-14T07:15:00Z - Ultra-robust minimal app with guaranteed render
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import { RouterProvider } from 'react-router-dom'
+import router from './router/index.jsx'
 import './index.css'
 
 // Ultra-simple fallback app that WILL render
@@ -156,11 +158,7 @@ const initializeApp = async () => {
     
     // Try to load the full app first
     try {
-      const { RouterProvider } = await import('react-router-dom');
-      const routerModule = await import('./router');
-      const router = routerModule.default;
-      
-      // If we get here, everything loaded successfully
+      // Use static imports - no dynamic loading needed
       const FullApp = () => (
         <React.StrictMode>
           <RouterProvider router={router} />
